@@ -1,0 +1,19 @@
+{
+  "appId": "com.halfgridgames.knotwizard",
+  "appName": "Knot Wizard",
+  "webDir": "www",
+  "backgroundColor": "#1c3a2e",
+  "server": {
+    "androidScheme": "https"
+  },
+  "android": {
+    "backgroundColor": "#1c3a2e"
+  },
+  "plugins": {
+    "SystemBars": {
+      "hidden": true,
+      "style": "DARK",
+      "initialViewportFitValueHint": "cover"
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "name": "Knot Wizard",
+  "short_name": "Knot Wizard",
+  "description": "Untangle the wizard's ropes: drag the pins until no rope crosses another.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "fullscreen",
+  "display_override": ["fullscreen", "standalone"],
+  "orientation": "portrait-primary",
+  "background_color": "#1c3a2e",
+  "theme_color": "#1c3a2e",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

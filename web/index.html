@@ -1,0 +1,1107 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#1c3a2e">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Knot Wizard">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<title>Knot Wizard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sniglet:wght@400;800&family=Nunito:wght@600;700;800&display=swap">
+<style>
+/* Layout: one portrait screen. Deep forest frame, a pale felt board in the middle, chunky bars above and below. Single committed look. */
+:root {
+  --forest: #1c3a2e;
+  --forest-2: #25493b;
+  --forest-3: #2f5a48;
+  --felt: #e6eed6;
+  --felt-line: #d3e0bf;
+  --ink: #f6f1e6;
+  --ink-dim: #a8c3b3;
+  --honey: #f5b83d;
+  --honey-deep: #b97a12;
+  --berry: #e4566e;
+  --plum: #6a4fc4;
+  --plum-deep: #432f8a;
+  --line: rgba(255,255,255,0.12);
+  --display: "Sniglet", "Arial Rounded MT Bold", "Trebuchet MS", sans-serif;
+  --body: "Nunito", "Segoe UI", system-ui, sans-serif;
+  color-scheme: dark;
+}
+html, body { height: 100%; }
+[hidden] { display: none !important; }
+body { background: var(--forest); color: var(--ink); font-family: var(--body); overflow: hidden; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; }
+button { font-family: var(--body); cursor: pointer; color: inherit; }
+button:focus-visible { outline: 3px solid var(--honey); outline-offset: 2px; }
+#app { position: fixed; inset: 0; display: flex; flex-direction: column; }
+.screen { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+
+/* ---------- menu ---------- */
+#menu { overflow-y: auto; padding: 18px 16px calc(24px + env(safe-area-inset-bottom, 0px)); }
+.menu-in { width: min(520px, 100%); margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
+.hero { display: flex; align-items: center; gap: 14px; }
+.hero svg { width: 76px; height: 88px; flex: none; }
+h1 { font-family: var(--display); font-weight: 800; font-size: clamp(40px, 11vw, 58px); line-height: 0.95; margin: 0; color: var(--honey); text-shadow: 0 4px 0 var(--honey-deep); text-wrap: balance; }
+.tagline { margin: 6px 0 0; color: var(--ink-dim); font-weight: 700; font-size: 14px; }
+.wallet { display: flex; gap: 8px; flex-wrap: wrap; }
+.chip { display: inline-flex; align-items: center; gap: 6px; background: var(--forest-2); border: 1px solid var(--line); border-radius: 99px; padding: 6px 12px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.chip svg { width: 16px; height: 16px; }
+.daily { display: flex; align-items: center; gap: 14px; background: linear-gradient(150deg, var(--plum), var(--plum-deep)); border-radius: 20px; padding: 14px 16px; box-shadow: 0 5px 0 #2c1f5c; }
+.daily .info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.daily b { font-family: var(--display); font-size: 22px; font-weight: 800; }
+.daily small { color: #d9cffa; font-weight: 700; font-size: 13px; }
+.label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink-dim); font-weight: 800; margin: 0 0 8px; }
+.worlds { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; }
+.world { flex: none; border: 2px solid var(--line); background: transparent; border-radius: 12px; padding: 7px 12px; font-weight: 800; font-size: 14px; display: flex; flex-direction: column; align-items: flex-start; line-height: 1.15; }
+.world small { font-size: 11px; color: var(--ink-dim); font-weight: 700; }
+.world[aria-pressed="true"] { border-color: var(--honey); background: rgba(245,184,61,0.12); }
+.world:disabled { opacity: 0.5; cursor: default; }
+.world .wst { display: inline-flex; align-items: center; gap: 3px; color: var(--honey); }
+.world .wst svg { width: 11px; height: 11px; }
+.grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+.lv { aspect-ratio: 1; max-width: 100%; border: 0; border-radius: 14px; background: var(--forest-2); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-family: var(--display); font-weight: 800; font-size: 21px; box-shadow: 0 3px 0 rgba(0,0,0,0.3); }
+.lv.done { background: var(--forest-3); }
+.lv.next { background: var(--honey); color: #3a2400; box-shadow: 0 3px 0 var(--honey-deep); }
+.lv:disabled { opacity: 0.42; cursor: default; box-shadow: none; }
+.lv .st { display: flex; gap: 1px; }
+.lv .st svg { width: 11px; height: 11px; }
+.lv svg.lock { width: 16px; height: 16px; }
+.menu-row { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* ---------- buttons ---------- */
+.go { font-family: var(--display); font-weight: 800; font-size: 20px; background: var(--honey); color: #3a2400; border: 0; border-radius: 14px; padding: 11px 24px; box-shadow: 0 4px 0 var(--honey-deep); }
+.go:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--honey-deep); }
+.go.plum { background: #fff; color: var(--plum-deep); box-shadow: 0 4px 0 #b8a9ea; }
+.ghost { background: transparent; border: 2px solid var(--line); border-radius: 14px; padding: 9px 16px; font-weight: 800; font-size: 15px; }
+.ghost:active { background: rgba(255,255,255,0.06); }
+
+/* ---------- game ---------- */
+.bar { flex: none; display: flex; align-items: center; gap: 10px; padding: 10px 14px; }
+.top { padding-top: calc(10px + env(safe-area-inset-top, 0px)); }
+.bottom { padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px)); justify-content: center; gap: 12px; }
+.icon-btn { width: 46px; height: 46px; border-radius: 14px; border: 0; background: var(--forest-2); display: grid; place-items: center; flex: none; box-shadow: 0 3px 0 rgba(0,0,0,0.3); }
+.icon-btn svg { width: 24px; height: 24px; }
+.ttl { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.ttl b { font-family: var(--display); font-weight: 800; font-size: 21px; line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ttl span { font-weight: 800; font-size: 14px; color: var(--honey); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.moves { display: flex; flex-direction: column; align-items: center; background: var(--forest-2); border-radius: 14px; padding: 4px 10px; min-width: 58px; font-variant-numeric: tabular-nums; }
+.moves b { font-family: var(--display); font-size: 22px; line-height: 1; }
+.moves small { font-size: 10px; font-weight: 800; color: var(--ink-dim); text-transform: uppercase; letter-spacing: 0.08em; }
+#wiz { width: 44px; height: 52px; flex: none; }
+#wiz.bounce { animation: bounce .5s ease; }
+@keyframes bounce { 30% { transform: translateY(-8px) rotate(-6deg); } 60% { transform: translateY(0) rotate(4deg); } }
+#boardWrap { flex: 1; min-height: 0; margin: 0 12px; position: relative; border-radius: 26px; background: var(--felt); box-shadow: inset 0 0 0 4px var(--felt-line), 0 8px 0 rgba(0,0,0,0.35); overflow: hidden; transition: background .4s; }
+body, .icon-btn, .tool, .moves, .lv, .chip { transition: background-color .4s; }
+#board { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; display: block; }
+.tool { display: flex; flex-direction: column; align-items: center; gap: 2px; border: 0; background: var(--forest-2); border-radius: 16px; padding: 8px 0 6px; width: 84px; font-weight: 800; font-size: 13px; box-shadow: 0 3px 0 rgba(0,0,0,0.3); position: relative; }
+.tool svg { width: 26px; height: 26px; }
+.tool:disabled { opacity: 0.4; cursor: default; }
+.tool .badge { position: absolute; top: -6px; right: -4px; background: var(--honey); color: #3a2400; border-radius: 99px; font-size: 12px; padding: 1px 7px; font-weight: 900; }
+.tool.hint { background: var(--plum); box-shadow: 0 3px 0 var(--plum-deep); }
+
+/* ---------- overlays ---------- */
+.overlay { position: fixed; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(10, 24, 18, 0.62); }
+.card { width: min(440px, 100%); max-height: 100%; overflow-y: auto; background: var(--forest-2); border: 1px solid var(--line); border-radius: 24px; padding: 22px 20px; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 20px 50px rgba(0,0,0,0.4); }
+.card h2 { font-family: var(--display); font-weight: 800; font-size: 34px; margin: 0; color: var(--honey); text-align: center; text-wrap: balance; }
+.card p { margin: 0; color: var(--ink-dim); font-weight: 700; text-align: center; }
+.stars { display: flex; justify-content: center; gap: 8px; }
+.stars svg { width: 62px; height: 62px; }
+.stars svg.on { animation: starpop .45s cubic-bezier(.2,1.6,.4,1) both; }
+.stars svg:nth-child(2) { width: 74px; height: 74px; margin-top: -10px; }
+.stars svg:nth-child(2).on { animation-delay: .15s; } .stars svg:nth-child(3).on { animation-delay: .3s; }
+@keyframes starpop { from { transform: scale(0.2) rotate(-40deg); opacity: 0; } }
+.card .row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.stat { display: flex; justify-content: center; gap: 18px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.stat span { display: flex; flex-direction: column; align-items: center; }
+.stat small { font-size: 11px; color: var(--ink-dim); text-transform: uppercase; letter-spacing: 0.08em; }
+.stat b { font-family: var(--display); font-size: 26px; }
+.items { display: flex; flex-direction: column; gap: 8px; }
+.item { display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,0.05); border-radius: 14px; padding: 10px 12px; }
+.item canvas { width: 64px; height: 32px; flex: none; border-radius: 8px; background: var(--felt); }
+.item .info { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.item .info b { font-family: var(--display); font-weight: 800; font-size: 18px; }
+.item .info small { color: var(--ink-dim); font-weight: 700; font-size: 12px; }
+.buy { border: 0; border-radius: 10px; padding: 8px 12px; font-weight: 800; font-size: 14px; background: var(--honey); color: #3a2400; white-space: nowrap; }
+.buy.eq { background: #4fd1a0; color: #073626; }
+.buy:disabled { background: rgba(255,255,255,0.08); color: var(--ink-dim); cursor: default; }
+.buy.ad { background: var(--plum); color: #fff; }
+.note { font-size: 12px; color: var(--ink-dim); font-weight: 700; text-align: center; }
+.adbar { height: 10px; border-radius: 99px; background: rgba(255,255,255,0.1); overflow: hidden; }
+.adbar i { display: block; height: 100%; width: 0; background: var(--honey); }
+.toast { position: fixed; left: 50%; bottom: calc(110px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--plum-deep); color: #fff; font-weight: 800; padding: 9px 16px; border-radius: 12px; z-index: 30; max-width: calc(100% - 32px); text-align: center; }
+#rotate { display: none; position: fixed; inset: 0; z-index: 100; background: var(--forest); flex-direction: column; align-items: center; justify-content: center; gap: 12px; font-family: var(--display); font-size: 24px; text-align: center; padding: 16px; }
+@media (pointer: coarse) and (orientation: landscape) and (max-height: 540px) { #rotate { display: flex; } }
+@media (max-width: 370px) { .tool { width: 74px; } .moves { min-width: 50px; } #wiz { display: none; } }
+@media (prefers-reduced-motion: reduce) { .stars svg.on, #wiz.bounce { animation: none; } .go:active { transform: none; } }
+</style>
+</head>
+<body>
+
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 2.5l2.9 6 6.6.8-4.9 4.5 1.3 6.5L12 17l-5.9 3.3 1.3-6.5L2.5 9.3l6.6-.8z" fill="currentColor" stroke="rgba(0,0,0,.25)" stroke-width="1.2" stroke-linejoin="round"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="3" fill="currentColor"/><path d="M8 11V8a4 4 0 0 1 8 0v3" fill="none" stroke="currentColor" stroke-width="2.6"/></symbol>
+    <symbol id="i-back" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-undo" viewBox="0 0 24 24"><path d="M9 7L4 12l5 5M5 12h9a5 5 0 0 1 0 10h-2" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" transform="translate(0,-3)"/></symbol>
+    <symbol id="i-reset" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.6-5.9M20 4v5h-5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-wand" viewBox="0 0 24 24"><path d="M4 20L15 9" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="M17 2l1 2.6L20.6 5.6 18 6.6 17 9.2 16 6.6 13.4 5.6 16 4.6z" fill="#f5b83d"/><circle cx="20" cy="12" r="1.3" fill="#f5b83d"/><circle cx="10" cy="4" r="1.1" fill="#f5b83d"/></symbol>
+    <symbol id="i-sound" viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-mute" viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 9l5 6M21 9l-5 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-bag" viewBox="0 0 24 24"><path d="M5 8h14l-1.2 12H6.2z" fill="currentColor"/><path d="M9 8V6a3 3 0 0 1 6 0v2" fill="none" stroke="currentColor" stroke-width="2.2"/></symbol>
+    <symbol id="wizard" viewBox="0 0 48 56">
+      <path d="M24 2L37 24H11z" fill="#6a4fc4"/><path d="M24 2L37 24H30z" fill="#432f8a"/>
+      <circle cx="21" cy="13" r="1.6" fill="#f5b83d"/><circle cx="27" cy="19" r="1.3" fill="#f5b83d"/><circle cx="23" cy="20" r="0.9" fill="#f5b83d"/>
+      <ellipse cx="24" cy="24" rx="17" ry="3.6" fill="#432f8a"/>
+      <circle cx="24" cy="32" r="9.5" fill="#f3c9a6"/>
+      <path d="M14.5 34c1 9 5 14 9.5 18 4.5-4 8.5-9 9.5-18-3 3-6 4-9.5 4s-6.5-1-9.5-4z" fill="#f6f1e6"/>
+      <g class="eyes"><circle cx="20.5" cy="31" r="1.5" fill="#2b2140"/><circle cx="27.5" cy="31" r="1.5" fill="#2b2140"/></g>
+      <g class="happy" style="display:none"><path d="M18.8 31.5q1.7-2 3.4 0M25.8 31.5q1.7-2 3.4 0" fill="none" stroke="#2b2140" stroke-width="1.5" stroke-linecap="round"/></g>
+      <circle cx="24" cy="35" r="1.6" fill="#e08b74"/>
+    </symbol>
+  </defs>
+</svg>
+
+<div id="rotate"><svg width="56" height="56" viewBox="0 0 40 40" aria-hidden="true"><rect x="12" y="3" width="16" height="34" rx="4" fill="none" stroke="#f5b83d" stroke-width="3"/><circle cx="20" cy="32" r="1.6" fill="#f5b83d"/></svg>Turn your phone upright to play</div>
+
+<div id="app">
+  <section id="menu" class="screen">
+    <div class="menu-in">
+      <div class="hero">
+        <svg aria-hidden="true"><use href="#wizard"/></svg>
+        <div><h1>Knot Wizard</h1><p class="tagline">Drag the pins until no rope crosses another.</p></div>
+      </div>
+      <div class="wallet">
+        <span class="chip" style="color:var(--honey)"><svg><use href="#i-star"/></svg><span id="mStars">0</span> / <span id="mStarsMax">450</span></span>
+        <span class="chip"><svg style="color:#c9b8ff"><use href="#i-wand"/></svg><span id="mHints">3</span> hints</span>
+      </div>
+      <div class="daily">
+        <div class="info"><b>Daily Knot</b><small id="dailySub"></small></div>
+        <button class="go plum" id="dailyGo">Play</button>
+      </div>
+      <div>
+        <div class="label">Worlds</div>
+        <div class="worlds" id="worlds"></div>
+      </div>
+      <div>
+        <div class="label" id="gridLabel">Forest · Classic knots</div>
+        <div class="grid" id="grid"></div>
+      </div>
+      <div class="menu-row">
+        <button class="go" id="mPlay">Play</button>
+        <button class="ghost" id="mShop">Shop</button>
+        <button class="ghost" id="mSound">Sound on</button>
+        <button class="ghost" id="mMusic">Music on</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="game" class="screen" hidden>
+    <header class="bar top">
+      <button class="icon-btn" id="gBack" aria-label="Back to levels"><svg><use href="#i-back"/></svg></button>
+      <div class="ttl"><b id="gName">Forest 1</b><span id="gSay" aria-live="polite"></span></div>
+      <div class="moves"><small>Moves</small><b id="gMoves">0</b><small id="gPar">par 2</small></div>
+      <svg id="wiz" aria-hidden="true"><use href="#wizard"/></svg>
+    </header>
+    <div id="boardWrap"><canvas id="board" aria-label="Puzzle board: drag the wooden pins"></canvas></div>
+    <footer class="bar bottom">
+      <button class="tool" id="gUndo"><svg><use href="#i-undo"/></svg>Undo</button>
+      <button class="tool" id="gReset"><svg><use href="#i-reset"/></svg>Restart</button>
+      <button class="tool hint" id="gHint"><svg><use href="#i-wand"/></svg>Hint<span class="badge" id="gHintN">3</span></button>
+    </footer>
+  </section>
+</div>
+
+<div class="overlay" id="win" hidden>
+  <div class="card">
+    <h2 id="wTitle">Untangled!</h2>
+    <div class="stars" id="wStars"></div>
+    <div class="stat"><span><small>Moves</small><b id="wMoves">0</b></span><span><small>Par</small><b id="wPar">0</b></span><span><small>Best</small><b id="wBest">0</b></span></div>
+    <p id="wSub"></p>
+    <div class="row"><button class="go" id="wNext">Next level</button><button class="ghost" id="wRetry">Replay</button><button class="ghost" id="wMenu">Levels</button></div>
+  </div>
+</div>
+
+<div class="overlay" id="shop" hidden>
+  <div class="card">
+    <h2>Shop</h2>
+    <div class="label">Rope styles · unlock with stars</div>
+    <div class="items" id="skins"></div>
+    <div class="label">Extras</div>
+    <div class="items" id="extras"></div>
+    <p class="note" id="shopMsg" role="status"></p>
+    <div class="row"><button class="go" id="shopClose">Done</button></div>
+  </div>
+</div>
+
+<div class="overlay" id="ad" hidden>
+  <div class="card">
+    <div class="label" style="text-align:center">Test ad</div>
+    <h2 id="adTitle">Thanks for playing Knot Wizard</h2>
+    <p>Real video ads play here in the app store version. This stand-in lets you try the reward flow.</p>
+    <div class="adbar"><i id="adFill"></i></div>
+    <div class="row"><button class="ghost" id="adSkip">Close without reward</button></div>
+  </div>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+
+<script>
+(() => {
+'use strict';
+const $ = s => document.querySelector(s);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+function rng(seed) { return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+
+/* ---------- save ---------- */
+const KEY = 'knotwizard.v1';
+function load() { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { return {}; } }
+const save = Object.assign({ stars: {}, best: {}, hints: 3, skin: 'classic', noAds: false, daily: { last: null, streak: 0 }, sound: true, music: true, sinceAd: 0 }, load());
+function persist() { try { localStorage.setItem(KEY, JSON.stringify(save)); } catch (e) {} }
+const totalStars = () => Object.values(save.stars).reduce((a, b) => a + b, 0);
+
+/* ---------- geometry ---------- */
+const EPS = 1e-9;
+function orient(a, b, c) { return (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x); }
+function segX(a, b, c, d) {
+  const d1 = orient(c, d, a), d2 = orient(c, d, b), d3 = orient(a, b, c), d4 = orient(a, b, d);
+  return ((d1 > EPS && d2 < -EPS) || (d1 < -EPS && d2 > EPS)) && ((d3 > EPS && d4 < -EPS) || (d3 < -EPS && d4 > EPS));
+}
+function edgesCross(P, e, f) {
+  if (e[0] === f[0] || e[0] === f[1] || e[1] === f[0] || e[1] === f[1]) return false;
+  return segX(P[e[0]], P[e[1]], P[f[0]], P[f[1]]);
+}
+function crossings(P, E) { const out = []; for (let i = 0; i < E.length; i++) for (let j = i + 1; j < E.length; j++) if (edgesCross(P, E[i], E[j])) out.push([i, j]); return out; }
+function interPt(a, b, c, d) { const p = orient(c, d, a), q = orient(c, d, b); const t = p / (p - q); return { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t }; }
+function psd(p, a, b) { const dx = b.x - a.x, dy = b.y - a.y; const t = clamp(((p.x - a.x) * dx + (p.y - a.y) * dy) / (dx * dx + dy * dy), 0, 1); return Math.hypot(p.x - a.x - t * dx, p.y - a.y - t * dy); }
+function incidence(n, E) { const inc = Array.from({ length: n }, () => []); E.forEach((e, i) => { inc[e[0]].push(i); inc[e[1]].push(i); }); return inc; }
+function pinCross(P, E, inc, k) { let c = 0; for (const ei of inc[k]) for (let j = 0; j < E.length; j++) if (j !== ei && edgesCross(P, E[ei], E[j])) c++; return c; }
+
+/* ---------- pin rules: locked pins, stretchy ropes, tied pins, round boards ---------- */
+// A puzzle def can carry: locked[k] (pin can't move), link[k] (index of the pin tied to k, or -1),
+// maxLen[e] (stretchy rope e reaches at most this far, 0 for ordinary ropes) and disc (round spinning board).
+const CEN = { x: 0.5, y: 0.5 }, DISC_R = 0.47;
+const group = (def, k) => def.link && def.link[k] >= 0 ? [k, def.link[k]] : [k];
+function fitArea(def, p) {
+  if (!def.disc) return { x: clamp(p.x, 0, 1), y: clamp(p.y, 0, 1) };
+  const d = dist(p, CEN); return d <= DISC_R ? p : { x: CEN.x + (p.x - CEN.x) * DISC_R / d, y: CEN.y + (p.y - CEN.y) * DISC_R / d };
+}
+// Where pin k (and any pin tied to it) ends up if the player tries to put k at q. null when it can't move.
+function tryMove(def, P, k, q) {
+  if (def.locked && def.locked[k]) return null;
+  const grp = group(def, k); let dx = q.x - P[k].x, dy = q.y - P[k].y;
+  const stretchy = def.maxLen ? def.E.map((e, ei) => [e, def.maxLen[ei]]).filter(([e, L]) => L && grp.includes(e[0]) !== grp.includes(e[1])) : [];
+  for (let pass = 0; pass < 6; pass++) {
+    for (const g of grp) { const p = { x: P[g].x + dx, y: P[g].y + dy }, f = fitArea(def, p); dx += f.x - p.x; dy += f.y - p.y; }
+    for (const [e, L] of stretchy) {
+      const g = grp.includes(e[0]) ? e[0] : e[1], o = g === e[0] ? e[1] : e[0];
+      const p = { x: P[g].x + dx, y: P[g].y + dy }, d = dist(p, P[o]);
+      if (d > L) { dx += P[o].x + (p.x - P[o].x) * L / d - p.x; dy += P[o].y + (p.y - P[o].y) * L / d - p.y; }
+    }
+  }
+  const out = grp.map(g => [g, { x: P[g].x + dx, y: P[g].y + dy }]), at = new Map(out);
+  for (const [, p] of out) { const f = fitArea(def, p); if (dist(f, p) > 0.004) return null; }
+  for (const [e, L] of stretchy) if (dist(at.get(e[0]) || P[e[0]], at.get(e[1]) || P[e[1]]) > L + 0.004) return null;
+  return out;
+}
+
+// Best single pin move on a coarse grid. Used for hints and to set par.
+function bestMove(def, P, E, inc) {
+  const base = crossings(P, E).length; if (!base) return null;
+  let best = null;
+  for (let k = 0; k < P.length; k++) {
+    if (def.locked && def.locked[k]) continue;
+    const grp = group(def, k); if (grp.length > 1 && grp[1] < k) continue;
+    const before = grp.length > 1 ? grp.reduce((s, g) => s + pinCross(P, E, inc, g), 0) : pinCross(P, E, inc, k); if (!before) continue;
+    const orig = grp.map(g => P[g]);
+    for (let gx = 0; gx < 11; gx++) for (let gy = 0; gy < 14; gy++) {
+      const q = { x: 0.06 + gx * 0.088, y: 0.06 + gy * 0.88 / 13 };
+      if (def.disc && dist(q, CEN) > DISC_R) continue;
+      const mv = tryMove(def, P, k, q); if (!mv) continue;
+      let ok = true; for (const [g, p] of mv) for (let j = 0; j < P.length; j++) if (!grp.includes(j) && dist(P[j], p) < 0.075) { ok = false; break; }
+      if (!ok) continue;
+      mv.forEach(([g, p]) => P[g] = p);
+      const total = grp.length > 1 ? crossings(P, E).length : base - before + pinCross(P, E, inc, k);
+      grp.forEach((g, i) => P[g] = orig[i]);
+      const to = mv[0][1], d = dist(orig[0], to);
+      if (!best || total < best.total || (total === best.total && d < best.d)) best = { k, x: to.x, y: to.y, total, d };
+    }
+  }
+  return best && best.total < base ? best : null;
+}
+
+/* ---------- level generation ---------- */
+// Build a planar graph (Euclidean MST plus shortest non-crossing extras), then scramble the pins onto a ring.
+// Locked pins stay where they belong; tied pins keep their offset from each other, so every level stays solvable.
+// o: { n, e: rope target, cross: min crossings, locks, links, stretch, disc }
+function genLevel(seed, o) {
+  const n = o.n, locks = o.locks || 0, links = o.links || 0, nStretch = o.stretch || 0, special = locks || links;
+  const inside = p => !o.disc || dist(p, CEN) <= 0.42;
+  for (let attempt = 0; attempt < 160; attempt++) {
+    const R = rng(seed + attempt * 7717);
+    const pts = []; const md = 0.62 / Math.sqrt(n) * (o.disc ? 0.88 : 1); let tries = 0;
+    while (pts.length < n && tries < 5000) { tries++; const p = { x: 0.08 + R() * 0.84, y: 0.08 + R() * 0.84 }; if (inside(p) && pts.every(q => dist(p, q) > md)) pts.push(p); }
+    if (pts.length < n) continue;
+    const cand = [];
+    for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) cand.push([i, j, dist(pts[i], pts[j])]);
+    cand.sort((a, b) => a[2] - b[2]);
+    const clear = (i, j) => pts.every((p, k) => k === i || k === j || psd(p, pts[i], pts[j]) > 0.045);
+    const parent = pts.map((_, i) => i); const find = i => parent[i] === i ? i : (parent[i] = find(parent[i]));
+    const E = []; let bad = false;
+    for (const [i, j] of cand) { const a = find(i), b = find(j); if (a === b) continue; if (!clear(i, j)) { bad = true; break; } parent[a] = b; E.push([i, j]); }
+    if (bad) continue;
+    for (const [i, j] of cand) {
+      if (E.length >= o.e) break;
+      if (E.some(e => (e[0] === i && e[1] === j))) continue;
+      if (!clear(i, j)) continue;
+      if (E.some(e => edgesCross(pts, e, [i, j]))) continue;
+      E.push([i, j]);
+    }
+    if (E.length < o.e - 1) continue;
+    // roles: locked pins, then tied pairs (leader i, follower j)
+    const R3 = rng(seed * 17 + attempt), locked = pts.map(() => false), link = pts.map(() => -1), follower = pts.map(() => false);
+    const order = pts.map((_, i) => i).sort(() => R3() - 0.5);
+    for (let t = 0; t < locks; t++) locked[order[t]] = true;
+    for (let t = 0; t < links; t++) {
+      const free = order.filter(i => !locked[i] && link[i] < 0); let made = false;
+      for (const i of free) { const j = free.find(j => j !== i && dist(pts[i], pts[j]) > 0.12 && dist(pts[i], pts[j]) < 0.3); if (j !== undefined) { link[i] = j; link[j] = i; follower[j] = true; made = true; break; } }
+      if (!made) break;
+    }
+    if (link.filter(l => l >= 0).length < links * 2) continue;
+    const movers = pts.map((_, i) => i).filter(i => !locked[i] && !follower[i]);
+    const need = Math.max(1, Math.round(o.cross * (n - locks) / n));
+    const R2 = rng(seed * 31 + attempt);
+    for (let s = 0; s < 300; s++) {
+      const perm = movers.map((_, i) => i); for (let i = perm.length - 1; i > 0; i--) { const j = Math.floor(R2() * (i + 1)); [perm[i], perm[j]] = [perm[j], perm[i]]; }
+      const off = R2() * Math.PI * 2;
+      const start = pts.map(p => ({ ...p }));
+      movers.forEach((k, t) => { const a = off + perm[t] / movers.length * Math.PI * 2; start[k] = { x: 0.5 + 0.4 * Math.cos(a), y: 0.5 + 0.4 * Math.sin(a) }; });
+      link.forEach((j, i) => { if (j >= 0 && follower[j]) start[j] = { x: start[i].x + pts[j].x - pts[i].x, y: start[i].y + pts[j].y - pts[i].y }; });
+      if (special) {
+        const def0 = { disc: o.disc }; let ok = true;
+        for (let i = 0; i < n && ok; i++) { if (dist(fitArea(def0, start[i]), start[i]) > 1e-6 || start[i].x < 0.03 || start[i].x > 0.97 || start[i].y < 0.03 || start[i].y > 0.97) ok = false; for (let j = i + 1; j < n && ok; j++) if (dist(start[i], start[j]) < 0.075) ok = false; }
+        if (!ok) continue;
+      }
+      if (crossings(start, E).length >= need) {
+        // stretchy ropes: long enough for any order of straight moves into the solved layout, and no longer
+        let maxLen = null;
+        if (nStretch) {
+          const reach = E.map(([a, b]) => Math.max(dist(start[a], start[b]), dist(start[a], pts[b]), dist(pts[a], start[b]), dist(pts[a], pts[b])));
+          const pick = E.map((e, i) => i).filter(i => !(locked[E[i][0]] && locked[E[i][1]]) && link[E[i][0]] !== E[i][1]).sort((a, b) => reach[a] - reach[b]).slice(0, nStretch * 2).sort(() => R2() - 0.5).slice(0, nStretch);
+          maxLen = E.map((e, i) => pick.includes(i) ? reach[i] * 1.06 + 0.03 : 0);
+        }
+        const def = { start, E, n, solved: pts, locked: special ? locked : null, link: links ? link : null, maxLen, disc: !!o.disc };
+        // par: greedy single-pin solver
+        const P = start.map(p => ({ ...p })), inc = incidence(n, E); let steps = 0, m;
+        while (crossings(P, E).length && steps < n * 3 && (m = bestMove(def, P, E, inc))) { tryMove(def, P, m.k, m).forEach(([g, p]) => P[g] = p); steps++; }
+        const left = crossings(P, E).length;
+        const par = (left ? steps + Math.ceil(left * 0.8) + 1 : steps) + Math.floor(n / 4);  // a little slack over the solver
+        def.par = Math.max(1, par);
+        return def;
+      }
+    }
+  }
+  return null;
+}
+
+/* ---------- worlds ---------- */
+// 5 worlds of 30 levels. Level numbers run 1-150 across worlds, so Forest saves from before the update still count.
+const PER = 30;
+const WORLDS = [
+  { name: 'Forest', sub: 'Classic knots', intro: '', n: [4, 12],
+    theme: { frame: ['#1c3a2e', '#25493b', '#2f5a48'], felt: '#e6eed6', line: '#d3e0bf', dot: '#d6e3c2', art: 'leaves' } },
+  { name: 'Castle', sub: 'Locked pins', intro: 'Iron pins can\'t move', n: [6, 13], locks: [1, 3],
+    theme: { frame: ['#2a2c44', '#363955', '#444868'], felt: '#e7e3ec', line: '#d3cddb', dot: '#d8d2e0', art: 'bricks' } },
+  { name: 'Docks', sub: 'Stretchy ropes', intro: 'Striped ropes have a limit', n: [6, 13], stretch: [2, 5], locks: [0, 1],
+    theme: { frame: ['#1b3446', '#244459', '#2e546c'], felt: '#ecdfc4', line: '#dccaa6', dot: '#ddcba8', art: 'planks' } },
+  { name: 'Clouds', sub: 'Tied pins', intro: 'Tied pins move together', n: [7, 14], links: [1, 3], stretch: [0, 2],
+    theme: { frame: ['#2d4a73', '#385a87', '#456a9a'], felt: '#e4f0fb', line: '#cfe1f2', dot: '#d3e5f5', art: 'clouds' } },
+  { name: 'Void', sub: 'Spinning board', intro: 'The board keeps spinning', n: [7, 14], disc: true, spin: [0.1, 0.3], locks: [0, 2], links: [0, 2], stretch: [0, 2],
+    theme: { frame: ['#140d26', '#21173b', '#2e2150'], felt: '#1d1433', line: '#2e2150', dot: '#ffffff', art: 'stars', dark: true } },
+];
+const LAST = WORLDS.length * PER;
+const worldOf = i => Math.floor((i - 1) / PER), localOf = i => (i - 1) % PER + 1;
+const cache = {};
+function levelDef(i) {
+  if (cache[i]) return cache[i];
+  const w = worldOf(i), Wd = WORLDS[w], li = localOf(i), t = (li - 1) / (PER - 1);
+  if (w === 0) {   // the original 30 Forest levels, unchanged
+    const n = Math.round(4 + t * 8);
+    return (cache[i] = genLevel(9137 + i * 7919, { n, e: Math.min(3 * n - 6, Math.round(n * (1.25 + 0.45 * t))), cross: Math.max(1, Math.round(n * (0.3 + 0.9 * t))) }));
+  }
+  // later worlds ease in: the new twist arrives alone, then the board fills up; every 10th level is a big one
+  const lerp = (r, x = t) => r ? Math.round(r[0] + (r[1] - r[0]) * x) : 0;
+  const big = li % 10 === 0 ? 1 : 0, n = lerp(Wd.n) + big;
+  const late = clamp((t - 0.3) / 0.7, 0, 1);
+  const o = {
+    n, e: Math.min(3 * n - 6, Math.round(n * (1.3 + 0.45 * t))), cross: Math.max(2, Math.round(n * (0.45 + 0.75 * t))),
+    locks: w === 1 ? lerp(Wd.locks) : lerp(Wd.locks, late), stretch: w === 2 ? lerp(Wd.stretch) : lerp(Wd.stretch, late),
+    links: w === 3 ? lerp(Wd.links) : lerp(Wd.links, late), disc: !!Wd.disc,
+  };
+  const def = genLevel(1000003 * w + 9137 + li * 7919, o);
+  if (def) def.spin = Wd.spin ? (Wd.spin[0] + (Wd.spin[1] - Wd.spin[0]) * t) * (li % 2 ? 1 : -1) : 0;
+  return (cache[i] = def);
+}
+function todayKey(d = new Date()) { return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate(); }
+function dailyDef() { const k = todayKey(); if (!cache['d' + k]) cache['d' + k] = genLevel(k * 13 + 5, { n: 11, e: 19, cross: 10 }); return cache['d' + k]; }
+const yesterdayKey = () => { const d = new Date(); d.setDate(d.getDate() - 1); return todayKey(d); };
+
+/* ---------- audio ---------- */
+// Sound effects and the soundtrack are both made from oscillators at play time, so the app ships no audio files.
+// While a gameplay clip is being recorded (window.__kwCapture), sounds are logged instead and mixed in afterwards.
+let ac = null;
+function audio() { if (!save.sound) return null; try { ac = ac || new (window.AudioContext || window.webkitAudioContext)(); if (ac.state === 'suspended') ac.resume(); } catch (e) { ac = null; } return ac; }
+function toneAt(a, out, t, freq, dur, type, vol) {
+  const o = a.createOscillator(), g = a.createGain();
+  o.type = type; o.frequency.setValueAtTime(freq, t); o.frequency.exponentialRampToValueAtTime(freq * 0.985, t + dur);
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.008); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  o.connect(g).connect(out); o.start(t); o.stop(t + dur + 0.05);
+}
+function tone(freq, when = 0, dur = 0.35, type = 'triangle', vol = 0.18) {
+  if (window.__kwCapture) { if (save.sound) window.__kwCapture.sfx.push([performance.now() / 1000 + when, freq, dur, type, vol]); return; }
+  const a = audio(); if (!a) return;
+  toneAt(a, a.destination, a.currentTime + when, freq, dur, type, vol);
+}
+const pluck = len => tone(clamp(520 - len * 420, 170, 520), 0, 0.3, 'triangle', 0.16);
+const chime = () => { tone(784, 0, 0.25, 'sine', 0.12); tone(1046, 0.07, 0.3, 'sine', 0.12); };
+const fanfare = () => [523, 659, 784, 1046].forEach((f, i) => tone(f, i * 0.09, 0.5, 'triangle', 0.15));
+const clank = () => { tone(196, 0, 0.12, 'square', 0.05); tone(147, 0.03, 0.2, 'triangle', 0.1); };
+const boing = () => { tone(260, 0, 0.18, 'sine', 0.1); tone(200, 0.06, 0.22, 'sine', 0.08); };
+
+/* ---------- soundtrack ---------- */
+// One gentle loop per world. A song is 16 bars over a 4-chord progression: pad and bass first, then an
+// arpeggio, then a little melody. Notes come from a seeded generator, so a step always sounds the same.
+const mtof = m => 440 * Math.pow(2, (m - 69) / 12);
+const SONGS = [
+  // Forest: C major, wooden marimba
+  { bpm: 84, chords: [[36, [60, 64, 67, 71]], [45, [57, 60, 64, 67]], [41, [57, 60, 65, 69]], [43, [55, 59, 62, 67]]], scale: [72, 74, 76, 79, 81, 84], lead: 'marimba', arp: 'marimba', shaker: 0.4, kick: 0, pad: 0.05 },
+  // Castle: D dorian, harp and low strings
+  { bpm: 76, chords: [[38, [62, 65, 69, 72]], [36, [60, 64, 67, 72]], [34, [58, 62, 65, 69]], [36, [60, 64, 67, 71]]], scale: [74, 76, 77, 79, 81, 84, 86], lead: 'harp', arp: 'harp', shaker: 0, kick: 0.5, pad: 0.07 },
+  // Docks: G mixolydian, plucky shanty with a lilt
+  { bpm: 100, swing: 0.12, chords: [[43, [59, 62, 67, 71]], [41, [57, 60, 65, 69]], [36, [60, 64, 67, 72]], [43, [59, 62, 67, 71]]], scale: [67, 69, 71, 72, 74, 77, 79], lead: 'uke', arp: 'uke', shaker: 0.6, kick: 0.6, pad: 0.035 },
+  // Clouds: F lydian, music-box bells
+  { bpm: 70, chords: [[41, [57, 60, 64, 69]], [43, [59, 62, 67, 71]], [40, [55, 59, 62, 67]], [45, [57, 60, 64, 69]]], scale: [77, 79, 81, 83, 84, 88, 89], lead: 'bell', arp: 'bell', shaker: 0, kick: 0, pad: 0.06 },
+  // Void: A minor, slow glassy drones
+  { bpm: 62, chords: [[33, [57, 60, 64, 71]], [29, [57, 60, 65, 69]], [36, [55, 60, 64, 67]], [28, [56, 59, 64, 68]]], scale: [69, 71, 72, 76, 79, 81], lead: 'glass', arp: 'glass', shaker: 0, kick: 0.35, pad: 0.08 },
+];
+function voice(a, out, kind, t, f, vol, dur) {
+  const env = (g, at, peak, rel) => { g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(peak, t + at); g.gain.exponentialRampToValueAtTime(0.0001, t + at + rel); };
+  const osc = (type, freq, peak, at, rel, dest) => { const o = a.createOscillator(), g = a.createGain(); o.type = type; o.frequency.setValueAtTime(freq, t); env(g, at, peak, rel); o.connect(g).connect(dest || out); o.start(t); o.stop(t + at + rel + 0.05); return o; };
+  if (kind === 'marimba') { osc('sine', f, vol, 0.004, 0.55); osc('sine', f * 4, vol * 0.25, 0.002, 0.08); }
+  else if (kind === 'harp') { const lp = a.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = f * 5; lp.connect(out); osc('triangle', f, vol, 0.004, 1.3, lp); osc('sine', f * 2, vol * 0.3, 0.004, 0.5, lp); }
+  else if (kind === 'uke') { const lp = a.createBiquadFilter(); lp.type = 'lowpass'; lp.Q.value = 2; lp.frequency.setValueAtTime(f * 8, t); lp.frequency.exponentialRampToValueAtTime(f * 1.5, t + 0.3); lp.connect(out); osc('sawtooth', f, vol * 0.6, 0.003, 0.45, lp); }
+  else if (kind === 'bell') { osc('sine', f, vol, 0.003, 1.6); osc('sine', f * 2.76, vol * 0.3, 0.002, 0.5); osc('sine', f * 5.4, vol * 0.1, 0.002, 0.25); }
+  else if (kind === 'glass') { osc('sine', f, vol * 0.8, 0.05, 2.2); osc('sine', f * 1.003, vol * 0.5, 0.08, 2.0); osc('sine', f * 3, vol * 0.08, 0.02, 0.6); }
+  else if (kind === 'pad') {
+    const lp = a.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 900; lp.connect(out);
+    for (const det of [-7, 7]) { const o = a.createOscillator(), g = a.createGain(); o.type = 'sawtooth'; o.frequency.value = f; o.detune.value = det;
+      g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(vol, t + dur * 0.35); g.gain.setValueAtTime(vol, t + dur * 0.7); g.gain.linearRampToValueAtTime(0.0001, t + dur * 1.1);
+      o.connect(g).connect(lp); o.start(t); o.stop(t + dur * 1.15); }
+  }
+  else if (kind === 'bass') { osc('sine', f, vol, 0.01, dur); osc('triangle', f * 2, vol * 0.15, 0.01, dur * 0.5); }
+  else if (kind === 'kick') { const o = osc('sine', 110, vol, 0.004, 0.32); o.frequency.exponentialRampToValueAtTime(42, t + 0.25); }
+  else if (kind === 'shaker') {
+    const len = Math.floor(a.sampleRate * 0.08), b = a.createBuffer(1, len, a.sampleRate), d = b.getChannelData(0), R = rng(Math.round(t * 1000));
+    for (let i = 0; i < len; i++) d[i] = (R() * 2 - 1) * Math.pow(1 - i / len, 3);
+    const s = a.createBufferSource(), hp = a.createBiquadFilter(), g = a.createGain(); s.buffer = b; hp.type = 'highpass'; hp.frequency.value = 6500; g.gain.value = vol;
+    s.connect(hp).connect(g).connect(out); s.start(t);
+  }
+}
+// Schedule song step (one eighth note) at time t.
+function songStep(a, out, si, step, t) {
+  const S = SONGS[si], beat = 60 / S.bpm, e8 = beat / 2, bar = Math.floor(step / 8), b8 = step % 8, sec = bar % 16;
+  const [root, ch] = S.chords[bar % 4], R = rng(si * 7919 + (bar % 4) * 131 + (sec >= 12 ? 17 : 0) + b8);
+  if (b8 % 2) t += e8 * (S.swing || 0);
+  if (b8 === 0) { ch.slice(0, 3).forEach(m => voice(a, out, 'pad', t, mtof(m), S.pad, beat * 4)); }
+  if (b8 === 0 || (b8 === 4 && sec >= 4)) voice(a, out, 'bass', t, mtof(root), 0.22, beat * 1.6);
+  if (S.kick && sec >= 4 && (b8 === 0 || b8 === 4)) voice(a, out, 'kick', t, 0, 0.3 * S.kick);
+  if (S.shaker && sec >= 4 && b8 % 2) voice(a, out, 'shaker', t, 0, 0.07 * S.shaker * (b8 === 3 || b8 === 7 ? 1.3 : 1));
+  if (sec >= 4 && !(sec >= 14 && b8 > 3)) {
+    const pat = [0, 1, 2, 3, 2, 1, 3, 2][b8], m = ch[pat] + (b8 >= 4 && sec % 4 === 3 ? 12 : 0);
+    if (R() > 0.12) voice(a, out, S.arp, t, mtof(m), 0.05, e8 * 2);
+  }
+  if (sec >= 8 && [0, 3, 4, 6].includes(b8) && R() > 0.25) {
+    const note = S.scale[Math.floor(R() * S.scale.length)];
+    voice(a, out, S.lead, t, mtof(note), 0.075, beat);
+  }
+}
+function reverb(a) {
+  const len = Math.floor(a.sampleRate * 2.4), b = a.createBuffer(2, len, a.sampleRate), R = rng(7);
+  for (let c = 0; c < 2; c++) { const d = b.getChannelData(c); for (let i = 0; i < len; i++) d[i] = (R() * 2 - 1) * Math.pow(1 - i / len, 2.6); }
+  const v = a.createConvolver(); v.buffer = b; return v;
+}
+// Music bus: dry plus a little room, into a master level.
+function musicBus(a, dest) {
+  const m = a.createGain(), wet = a.createGain(), rv = reverb(a);
+  m.gain.value = 0.55; wet.gain.value = 0.35;
+  m.connect(dest); m.connect(rv); rv.connect(wet).connect(dest);
+  return m;
+}
+const music = {
+  song: -1, bus: null, t0: 0, step: 0, timer: 0,
+  want(si) {
+    const a = !window.__kwCapture && save.music ? audio() : null;
+    if (!a) return this.stop();
+    if (si === this.song && this.timer) return;
+    this.stop(); this.song = si;
+    this.bus = musicBus(a, a.destination); this.t0 = a.currentTime + 0.2; this.step = 0;
+    this.bus.gain.setValueAtTime(0.0001, a.currentTime); this.bus.gain.exponentialRampToValueAtTime(0.55, a.currentTime + 1.5);
+    this.timer = setInterval(() => this.tick(), 60); this.tick();
+  },
+  tick() {
+    if (!ac || !this.bus) return;
+    const e8 = 30 / SONGS[this.song].bpm;
+    while (this.t0 + this.step * e8 < ac.currentTime + 0.3) { songStep(ac, this.bus, this.song, this.step, this.t0 + this.step * e8); this.step++; }
+  },
+  stop() {
+    clearInterval(this.timer); this.timer = 0; this.song = -1;
+    const b = this.bus; this.bus = null;
+    if (b && ac) { b.gain.cancelScheduledValues(ac.currentTime); b.gain.setValueAtTime(b.gain.value, ac.currentTime); b.gain.linearRampToValueAtTime(0, ac.currentTime + 0.6); setTimeout(() => b.disconnect(), 800); }
+  },
+};
+// pause everything when the app goes to the background
+document.addEventListener('visibilitychange', () => { if (!ac) return; if (document.hidden) ac.suspend(); else if (save.sound) ac.resume(); });
+
+/* ---------- rope skins ---------- */
+const ROPES = ['#ef7a5a', '#2f9c96', '#8a6cd1', '#4a8fd9', '#e39b2c', '#d4669a'];
+const SKINS = [
+  { id: 'classic', name: 'Twisted hemp', need: 0, desc: 'The wizard\'s everyday rope' },
+  { id: 'licorice', name: 'Licorice', need: 12, desc: 'Sweet, red and stretchy' },
+  { id: 'chain', name: 'Iron chain', need: 30, desc: 'Clanks when it snaps tight' },
+  { id: 'fairy', name: 'Fairy lights', need: 50, desc: 'Glowing bulbs on a green wire' },
+  { id: 'rainbow', name: 'Rainbow silk', need: 75, desc: 'For the true knot master' },
+];
+function shade(hex, f) {
+  const n = parseInt(hex.slice(1), 16); let r = n >> 16, g = n >> 8 & 255, b = n & 255;
+  const t = f < 0 ? 0 : 255, p = Math.abs(f);
+  r = Math.round((t - r) * p + r); g = Math.round((t - g) * p + g); b = Math.round((t - b) * p + b);
+  return `rgb(${r},${g},${b})`;
+}
+function drawRope(c, a, b, idx, w, skin, state, time) {
+  c.lineCap = 'round';
+  const line = (col, lw, dash, off) => { c.strokeStyle = col; c.lineWidth = lw; c.setLineDash(dash || []); c.lineDashOffset = off || 0; c.beginPath(); c.moveTo(a.x, a.y); c.lineTo(b.x, b.y); c.stroke(); };
+  if (state === 'cross') line('rgba(228,86,110,0.32)', w + 10);
+  if (state === 'glow') line(`rgba(245,184,61,${0.35 + 0.25 * Math.sin(time * 6)})`, w + 12);
+  if (skin === 'licorice') { line('#4a0c16', w + 3); line('#d8283f', w); line('#8f1426', w * 0.5, [w * 0.7, w * 0.9]); }
+  else if (skin === 'chain') { line('#3d424e', w + 2); line('#c9ced8', w - 1, [w * 1.1, w * 0.5]); line('#7d8595', w * 0.35, [w * 0.5, w * 1.1], w * 0.8); }
+  else if (skin === 'fairy') {
+    line('#2f5d3a', 3);
+    const L = dist(a, b), cols = ['#ffd84d', '#ff6b8a', '#6bd4ff', '#a6ff7a'];
+    for (let s = 9, k = idx; s < L - 6; s += 17, k++) {
+      const x = a.x + (b.x - a.x) * s / L, y = a.y + (b.y - a.y) * s / L, col = cols[k % 4];
+      c.globalAlpha = 0.3 + 0.15 * Math.sin(time * 4 + k); c.fillStyle = col; c.beginPath(); c.arc(x, y, w * 0.95, 0, 7); c.fill();
+      c.globalAlpha = 1; c.beginPath(); c.arc(x, y, w * 0.42, 0, 7); c.fill();
+    }
+  } else if (skin === 'rainbow') {
+    const g = c.createLinearGradient(a.x, a.y, b.x, b.y); const h = idx * 47 % 360;
+    g.addColorStop(0, `hsl(${h},85%,60%)`); g.addColorStop(1, `hsl(${(h + 120) % 360},85%,60%)`);
+    line('rgba(40,30,70,0.35)', w + 3); line(g, w); line('rgba(255,255,255,0.45)', w * 0.3, [w * 0.6, w * 1.2]);
+  } else {
+    const col = ROPES[idx % ROPES.length];
+    line(shade(col, -0.4), w + 3); line(col, w); line(shade(col, 0.35), w * 0.42, [w * 0.55, w * 0.95]);
+  }
+  c.setLineDash([]);
+}
+
+/* ---------- game state ---------- */
+const cv = $('#board'), ctx = cv.getContext('2d');
+let W = 0, H = 0, DPR = 1, pinR = 14, pad = 24;
+let G = null;           // current puzzle
+let particles = [], running = false, sayTimer = 0, theme = WORLDS[0].theme;
+
+function resize() {
+  const r = cv.getBoundingClientRect(); DPR = Math.min(window.devicePixelRatio || 1, window.__kwCapture ? 3 : 2.5);
+  W = r.width; H = r.height; cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
+  pinR = clamp(Math.min(W, H) * 0.036, 11, 18); pad = pinR * 1.6;
+}
+new ResizeObserver(resize).observe($('#boardWrap'));
+// Square boards stretch 0-1 over the felt. Round boards (the Void) sit in a centred circle turned by G.theta.
+const discSize = () => Math.min(W, H) - 2 * pad;
+function toPx(p) {
+  if (G && G.def.disc) { const S = discSize(), u = (p.x - 0.5) * S, v = (p.y - 0.5) * S, c = Math.cos(G.theta), s = Math.sin(G.theta); return { x: W / 2 + u * c - v * s, y: H / 2 + u * s + v * c }; }
+  return { x: pad + p.x * (W - 2 * pad), y: pad + p.y * (H - 2 * pad) };
+}
+function toN(x, y) {
+  if (G && G.def.disc) { const S = discSize(), u = x - W / 2, v = y - H / 2, c = Math.cos(G.theta), s = Math.sin(G.theta); return fitArea(G.def, { x: 0.5 + (u * c + v * s) / S, y: 0.5 + (-u * s + v * c) / S }); }
+  return { x: clamp((x - pad) / (W - 2 * pad), 0, 1), y: clamp((y - pad) / (H - 2 * pad), 0, 1) };
+}
+function applyTheme(w) {
+  theme = WORLDS[w].theme; const r = document.documentElement.style;
+  ['--forest', '--forest-2', '--forest-3'].forEach((v, i) => r.setProperty(v, theme.frame[i]));
+  r.setProperty('--felt', theme.felt); r.setProperty('--felt-line', theme.line);
+  const m = document.querySelector('meta[name="theme-color"]'); if (m) m.content = theme.frame[0];
+}
+
+function startPuzzle(kind, idx) {
+  const def = kind === 'daily' ? dailyDef() : levelDef(idx);
+  if (!def) { toast('This level could not be built. Try another.'); return; }
+  const w = kind === 'daily' ? 0 : worldOf(idx);
+  G = { kind, idx, w, def, P: def.start.map(p => ({ ...p })), E: def.E, inc: incidence(def.n, def.E), moves: 0, undo: [], solved: false, hint: null, drag: -1, lastTap: 0, solvedAt: 0, theta: 0, spin: def.spin || 0, shake: null, ptr: null, strain: false };
+  G.cross = crossings(G.P, G.E).length; G.startCross = G.cross;
+  $('#gName').textContent = kind === 'daily' ? 'Daily Knot' : `${WORLDS[w].name} ${localOf(idx)}`;
+  $('#gPar').textContent = `par ${def.par}`;
+  applyTheme(w); music.want(w);
+  setWizard(false);
+  updateHud();
+  const intro = kind === 'level' && localOf(idx) <= 2 && WORLDS[w].intro;
+  if (intro) { say(intro, 3200); if (localOf(idx) === 1) toast(intro); } else say(`Untie ${G.cross} knot${G.cross === 1 ? '' : 's'}`);
+  show('game'); resize();
+  if (!running) { running = true; requestAnimationFrame(loop); }
+}
+function updateHud() {
+  $('#gMoves').textContent = G.moves;
+  $('#gUndo').disabled = !G.undo.length || G.solved;
+  $('#gReset').disabled = G.solved;
+  $('#gHint').disabled = G.solved;
+  $('#gHintN').textContent = save.hints > 0 ? save.hints : 'AD';
+}
+function say(text, temp) {
+  $('#gSay').textContent = text; clearTimeout(sayTimer);
+  if (temp) sayTimer = setTimeout(() => G && !G.solved && say(knotsLeft()), temp === true ? 1400 : temp);
+}
+const knotsLeft = () => G.cross === 1 ? 'Last knot!' : `${G.cross} knots left`;
+function setWizard(happy) {
+  const w = $('#wiz');
+  w.classList.remove('bounce'); void w.offsetWidth; if (happy) w.classList.add('bounce');
+}
+
+/* ---------- input ---------- */
+function pinAt(x, y) {
+  let best = -1, bd = Math.max(26, pinR * 2);
+  G.P.forEach((p, i) => { const q = toPx(p), d = Math.hypot(q.x - x, q.y - y); if (d < bd) { bd = d; best = i; } });
+  return best;
+}
+function local(e) { const r = cv.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; }
+cv.addEventListener('pointerdown', e => {
+  if (!G || G.solved) return; audio();
+  const { x, y } = local(e), i = pinAt(x, y);
+  if (i < 0) {
+    const now = performance.now();
+    if (now - G.lastTap < 320) { undo(); G.lastTap = 0; } else G.lastTap = now;
+    return;
+  }
+  if (G.def.locked && G.def.locked[i]) { G.shake = { i, t: performance.now() }; clank(); say('That pin is locked', true); return; }
+  G.drag = i; G.from = group(G.def, i).map(g => [g, { ...G.P[g] }]); G.ptr = { x, y }; G.strain = false; cv.setPointerCapture(e.pointerId);
+});
+function dragTo(pt) {
+  let q = toN(pt.x, pt.y);
+  // keep pins apart so they can't be stacked on top of each other
+  const grp = group(G.def, G.drag);
+  const sep = (pinR * 2.3) / (G.def.disc ? discSize() : Math.min(W - 2 * pad, H - 2 * pad));
+  for (let pass = 0; pass < 3; pass++) G.P.forEach((p, j) => {
+    if (grp.includes(j)) return; const d = dist(p, q);
+    if (d < sep) { const ang = d < 1e-6 ? Math.random() * 7 : Math.atan2(q.y - p.y, q.x - p.x); q = fitArea(G.def, { x: clamp(p.x + Math.cos(ang) * sep, 0, 1), y: clamp(p.y + Math.sin(ang) * sep, 0, 1) }); }
+  });
+  const mv = tryMove(G.def, G.P, G.drag, q); if (!mv) return;
+  // a stretchy rope at full stretch holds the pin back
+  const strain = dist(mv[0][1], q) > 0.03;
+  if (strain && !G.strain) boing();
+  G.strain = strain;
+  mv.forEach(([g, p]) => G.P[g] = p);
+}
+cv.addEventListener('pointermove', e => { if (!G || G.drag < 0) return; G.ptr = local(e); dragTo(G.ptr); });
+const endDrag = () => {
+  if (!G || G.drag < 0) return;
+  const i = G.drag; G.drag = -1; G.strain = false;
+  if (dist(G.P[i], G.from[0][1]) < 0.01) { G.from.forEach(([g, p]) => G.P[g] = p); return; }
+  G.undo.push(G.from); G.moves++; G.hint = null;
+  const L = G.inc[i].reduce((s, ei) => s + dist(G.P[G.E[ei][0]], G.P[G.E[ei][1]]), 0) / Math.max(1, G.inc[i].length);
+  pluck(L); afterChange(true);
+};
+cv.addEventListener('pointerup', endDrag); cv.addEventListener('pointercancel', endDrag);
+
+function afterChange(byPlayer) {
+  const before = G.cross; G.cross = crossings(G.P, G.E).length;
+  if (G.cross === 0) return win();
+  if (byPlayer && G.cross < before) { chime(); say(['Nice twist!', 'Loosening up', 'Ooh, tidy', 'Knot gone!'][G.moves % 4], true); }
+  else say(knotsLeft());
+  updateHud();
+}
+function undo() {
+  if (!G || G.solved || !G.undo.length) return;
+  G.undo.pop().forEach(([g, p]) => G.P[g] = p); G.moves = Math.max(0, G.moves - 1); G.hint = null;
+  tone(330, 0, 0.15, 'sine', 0.1); afterChange(false);
+}
+function restart() { if (!G || G.solved) return; startPuzzle(G.kind, G.idx); }
+function hint() {
+  if (!G || G.solved) return;
+  const use = () => {
+    const m = bestMove(G.def, G.P, G.E, G.inc);
+    if (!m) { say('Try moving a red-ringed pin', true); return; }
+    G.hint = { k: m.k, x: m.x, y: m.y, t: performance.now() };
+    say('Move the glowing pin to the ring', true);
+  };
+  if (save.hints > 0) { save.hints--; persist(); updateHud(); use(); }
+  else money.rewarded('Watch to earn a hint').then(ok => { if (ok && G && !G.solved) use(); });
+}
+$('#gUndo').onclick = undo; $('#gReset').onclick = restart; $('#gHint').onclick = hint;
+$('#gBack').onclick = () => { toMenu(); };
+
+/* ---------- win ---------- */
+function win() {
+  G.solved = true; G.solvedAt = performance.now(); G.hint = null; updateHud();
+  say('Spellbound!'); setWizard(true); fanfare();
+  G.P.forEach((p, i) => { const q = toPx(p); for (let k = 0; k < 9; k++) particles.push({ x: q.x, y: q.y, vx: (Math.random() - 0.5) * 320, vy: -Math.random() * 360 - 60, life: 1, col: ['#f5b83d', '#ffffff', ROPES[(i + k) % 6]][k % 3] }); });
+  const par = G.def.par, m = G.moves;
+  const stars = m <= par ? 3 : m <= par + Math.ceil(par * 0.6) + 1 ? 2 : 1;
+  const key = G.kind === 'daily' ? null : G.idx;
+  let sub = '';
+  if (key) {
+    const prev = save.stars[key] || 0; save.stars[key] = Math.max(prev, stars);
+    save.best[key] = Math.min(save.best[key] || 999, m);
+    const unlocked = SKINS.find(s => s.need > totalStars() - (save.stars[key] - prev) && s.need <= totalStars());
+    if (unlocked) sub = `New rope style unlocked: ${unlocked.name}. Equip it in the Shop.`;
+    else if (stars < 3) sub = `Finish in ${par} moves or fewer for three stars.`;
+    else sub = 'A perfect untangle.';
+    if (key === LAST) sub = 'You untied the whole kingdom. You are a true Knot Wizard!';
+    else if (localOf(key) === PER) sub = `You cleared the ${WORLDS[worldOf(key)].name}! The ${WORLDS[worldOf(key) + 1].name} is open.`;
+  } else {
+    const k = todayKey();
+    if (save.daily.last !== k) { save.daily.streak = save.daily.last === yesterdayKey() ? save.daily.streak + 1 : 1; save.daily.last = k; }
+    sub = `Daily streak: ${save.daily.streak} day${save.daily.streak === 1 ? '' : 's'}. A new knot appears tomorrow.`;
+  }
+  persist();
+  setTimeout(() => {
+    $('#wTitle').textContent = stars === 3 ? 'Spellbound!' : 'Untangled!';
+    $('#wStars').innerHTML = [0, 1, 2].map(i => `<svg class="${i < stars ? 'on' : ''}" style="color:${i < stars ? 'var(--honey)' : 'rgba(255,255,255,0.15)'}"><use href="#i-star"/></svg>`).join('');
+    $('#wMoves').textContent = m; $('#wPar').textContent = par; $('#wBest').textContent = key ? save.best[key] : m;
+    $('#wSub').textContent = sub;
+    $('#wNext').hidden = !key || key >= LAST;
+    $('#wNext').textContent = key && localOf(key) === PER ? `On to the ${WORLDS[worldOf(key) + 1] ? WORLDS[worldOf(key) + 1].name : ''}` : 'Next level';
+    $('#win').hidden = false;
+  }, 900);
+}
+function maybeInterstitial(then) { const idx = G && G.kind === 'level' ? G.idx : 0; money.interstitial(idx).then(then); }
+$('#wNext').onclick = () => { $('#win').hidden = true; const n = G.idx + 1; maybeInterstitial(() => startPuzzle('level', n)); };
+$('#wRetry').onclick = () => { $('#win').hidden = true; const g = G; maybeInterstitial(() => startPuzzle(g.kind, g.idx)); };
+$('#wMenu').onclick = () => { $('#win').hidden = true; toMenu(); };
+function toMenu() { if (G && G.kind === 'level') menuWorld = G.w; G = null; renderMenu(); show('menu'); }
+
+/* ---------- drawing ---------- */
+let last = performance.now();
+function loop(now) {
+  const dt = Math.min(0.05, (now - last) / 1000); last = now;
+  if (!G && !particles.length) { running = false; return; }
+  if (G && G.spin && !G.solved) { G.theta += G.spin * dt; if (G.drag >= 0 && G.ptr) dragTo(G.ptr); }
+  else if (G && G.spin) G.theta += G.spin * dt * Math.max(0, 1 - (now - G.solvedAt) / 1500);
+  draw(now / 1000, dt);
+  requestAnimationFrame(loop);
+}
+const STARS = (() => { const R = rng(11); return Array.from({ length: 90 }, () => [R(), R(), R() * 6, 0.6 + R() * 1.3]); })();
+function drawFelt(c, time) {
+  c.fillStyle = theme.dot; c.strokeStyle = theme.dot;
+  if (theme.art === 'bricks') {
+    c.lineWidth = 1.5; c.beginPath();
+    for (let y = 0, r = 0; y < H; y += 24, r++) { c.moveTo(0, y); c.lineTo(W, y); for (let x = (r % 2) * 26; x < W; x += 52) { c.moveTo(x, y); c.lineTo(x, y + 24); } }
+    c.stroke();
+  } else if (theme.art === 'planks') {
+    c.lineWidth = 2; c.beginPath(); for (let y = 30; y < H; y += 30) { c.moveTo(0, y); c.lineTo(W, y); } c.stroke();
+    for (let y = 15, r = 0; y < H; y += 30, r++) for (let x = (r % 3) * 40 + 20; x < W; x += 120) { c.beginPath(); c.arc(x, y - 9, 1.6, 0, 7); c.arc(x, y + 9, 1.6, 0, 7); c.fill(); }
+  } else if (theme.art === 'clouds') {
+    for (let y = 30, r = 0; y < H; y += 64, r++) for (let x = (r % 2) * 50 + 20; x < W + 40; x += 100) {
+      const dx = Math.sin(time * 0.3 + r) * 6; c.beginPath(); c.arc(x + dx, y, 9, 0, 7); c.arc(x + dx + 11, y - 5, 11, 0, 7); c.arc(x + dx + 23, y, 9, 0, 7); c.fill();
+    }
+  } else if (theme.art === 'stars') {
+    STARS.forEach(([x, y, ph, r]) => { c.globalAlpha = 0.25 + 0.3 * Math.sin(time * 1.6 + ph); c.beginPath(); c.arc(x * W, y * H, r, 0, 7); c.fill(); });
+    c.globalAlpha = 1;
+  } else {
+    for (let y = 18; y < H; y += 34) for (let x = (y / 34 % 2) * 17 + 10; x < W; x += 34) { c.beginPath(); c.ellipse(x, y, 2.4, 1.3, 0.6, 0, 7); c.fill(); }
+  }
+  // the spinning Void board: a disc with slowly turning swirl arms
+  if (G && G.def.disc) {
+    const S = discSize(), R0 = S * (DISC_R + 0.04);
+    const g = c.createRadialGradient(W / 2, H / 2, R0 * 0.1, W / 2, H / 2, R0);
+    g.addColorStop(0, '#3d2c6e'); g.addColorStop(1, '#2a1e4d');
+    c.fillStyle = g; c.beginPath(); c.arc(W / 2, H / 2, R0, 0, 7); c.fill();
+    c.strokeStyle = 'rgba(178,150,255,0.28)'; c.lineWidth = 2; c.beginPath(); c.arc(W / 2, H / 2, R0, 0, 7); c.stroke();
+    c.strokeStyle = 'rgba(178,150,255,0.12)'; c.lineWidth = 3;
+    for (let k = 0; k < 4; k++) { c.beginPath(); for (let s = 0; s <= 30; s++) { const f = s / 30, a = G.theta + k * Math.PI / 2 + f * 2.4, rr = R0 * (0.12 + 0.82 * f); s ? c.lineTo(W / 2 + Math.cos(a) * rr, H / 2 + Math.sin(a) * rr) : c.moveTo(W / 2 + Math.cos(a) * rr, H / 2 + Math.sin(a) * rr); } c.stroke(); }
+  }
+}
+const PAIR = ['#4fa3e3', '#e66fae', '#5cc47a'];
+function draw(time, dt) {
+  const c = ctx; c.setTransform(DPR, 0, 0, DPR, 0, 0); c.clearRect(0, 0, W, H);
+  drawFelt(c, time);
+  if (!G) return drawParticles(c, dt);
+  const def = G.def, P = G.P.map(toPx), cr = crossings(G.P, G.E), bad = new Set(); cr.forEach(([i, j]) => { bad.add(i); bad.add(j); });
+  const glow = G.solved;
+  const w = clamp(pinR * 0.55, 6, 10);
+  // tied pins: a silver thread (not a rope, it never counts as a crossing)
+  const pairs = def.link ? def.link.map((j, i) => [i, j]).filter(([i, j]) => j > i) : [];
+  pairs.forEach(([i, j], k) => {
+    c.strokeStyle = PAIR[k % 3]; c.globalAlpha = 0.55; c.lineWidth = 3; c.setLineDash([2, 7]); c.lineDashOffset = -time * 12; c.lineCap = 'round';
+    c.beginPath(); c.moveTo(P[i].x, P[i].y); c.lineTo(P[j].x, P[j].y); c.stroke(); c.setLineDash([]); c.globalAlpha = 1;
+  });
+  G.E.forEach((e, i) => {
+    const L = def.maxLen && def.maxLen[i];
+    if (!L) return drawRope(c, P[e[0]], P[e[1]], i, w, save.skin, glow ? 'glow' : bad.has(i) ? 'cross' : '', time);
+    // stretchy rope: thins as it stretches, bright stripes, warm glow at full stretch
+    const k = clamp(dist(G.P[e[0]], G.P[e[1]]) / L, 0, 1), ww = w * (1.15 - 0.45 * k), a = P[e[0]], b = P[e[1]];
+    if (k > 0.94 && !glow) { c.strokeStyle = `rgba(245,140,40,${0.3 + 0.2 * Math.sin(time * 10)})`; c.lineWidth = ww + 12; c.lineCap = 'round'; c.beginPath(); c.moveTo(a.x, a.y); c.lineTo(b.x, b.y); c.stroke(); }
+    drawRope(c, a, b, i, ww, save.skin, glow ? 'glow' : bad.has(i) ? 'cross' : '', time);
+    c.strokeStyle = '#fffaf0'; c.lineWidth = ww + 1; c.setLineDash([4, 5 + 9 * k]); c.lineCap = 'butt'; c.beginPath(); c.moveTo(a.x, a.y); c.lineTo(b.x, b.y); c.stroke(); c.setLineDash([]); c.lineCap = 'round';
+  });
+  // knots at crossing points
+  cr.forEach(([i, j]) => {
+    const a = G.E[i], b = G.E[j], q = interPt(P[a[0]], P[a[1]], P[b[0]], P[b[1]]);
+    const r = w * 0.85 + Math.sin(time * 5 + i) * 0.8;
+    c.fillStyle = '#e4566e'; c.beginPath(); c.arc(q.x, q.y, r, 0, 7); c.fill();
+    c.strokeStyle = '#fff'; c.lineWidth = 2; c.beginPath(); c.moveTo(q.x - r * 0.45, q.y - r * 0.45); c.lineTo(q.x + r * 0.45, q.y + r * 0.45); c.moveTo(q.x + r * 0.45, q.y - r * 0.45); c.lineTo(q.x - r * 0.45, q.y + r * 0.45); c.stroke();
+  });
+  // hint
+  if (G.hint) {
+    const h = G.hint, tp = toPx(h), from = P[h.k], pulse = 0.5 + 0.5 * Math.sin(time * 6);
+    c.setLineDash([6, 6]); c.lineDashOffset = -time * 30; c.strokeStyle = theme.dark ? '#b9a4ff' : '#6a4fc4'; c.lineWidth = 3;
+    c.beginPath(); c.moveTo(from.x, from.y); c.lineTo(tp.x, tp.y); c.stroke();
+    c.beginPath(); c.arc(tp.x, tp.y, pinR * (1.5 + pulse * 0.3), 0, 7); c.stroke(); c.setLineDash([]);
+    c.fillStyle = 'rgba(106,79,196,0.18)'; c.beginPath(); c.arc(tp.x, tp.y, pinR * 1.4, 0, 7); c.fill();
+  }
+  // pins
+  P.forEach((q0, i) => {
+    let q = q0;
+    if (G.shake && G.shake.i === i) { const s = (performance.now() - G.shake.t) / 1000; if (s < 0.35) q = { x: q0.x + Math.sin(s * 70) * 4 * (1 - s / 0.35), y: q0.y }; }
+    const drag = i === G.drag || (G.drag >= 0 && def.link && def.link[G.drag] === i), r = pinR * (drag ? 1.25 : 1);
+    const isBad = G.inc[i].some(ei => bad.has(ei)), locked = def.locked && def.locked[i];
+    c.fillStyle = theme.dark ? 'rgba(0,0,0,0.4)' : 'rgba(30,50,30,0.22)'; c.beginPath(); c.ellipse(q.x + 2, q.y + (drag ? 7 : 4), r, r * 0.8, 0, 0, 7); c.fill();
+    if (G.hint && G.hint.k === i) { c.fillStyle = `rgba(106,79,196,${0.25 + 0.2 * Math.sin(time * 6)})`; c.beginPath(); c.arc(q.x, q.y, r * 1.9, 0, 7); c.fill(); }
+    const pi = pairs.findIndex(p => p.includes(i));
+    if (pi >= 0) { c.strokeStyle = PAIR[pi % 3]; c.lineWidth = 4; c.beginPath(); c.arc(q.x, q.y, r + 4.5, 0, 7); c.stroke(); }
+    const g = c.createRadialGradient(q.x - r * 0.35, q.y - r * 0.4, r * 0.1, q.x, q.y, r);
+    if (locked) { g.addColorStop(0, '#eef0f4'); g.addColorStop(0.55, '#8d93a3'); g.addColorStop(1, '#474c5c'); }
+    else { g.addColorStop(0, '#f6d7a4'); g.addColorStop(0.55, '#c08347'); g.addColorStop(1, '#7c4a22'); }
+    c.fillStyle = g; c.beginPath(); c.arc(q.x, q.y, r, 0, 7); c.fill();
+    c.lineWidth = 2.5; c.strokeStyle = glow ? '#f5b83d' : isBad ? '#e4566e' : locked ? '#2d3140' : '#5e3818'; c.stroke();
+    if (locked) {   // a little padlock
+      c.fillStyle = '#2d3140'; c.strokeStyle = '#2d3140'; c.lineWidth = r * 0.14;
+      c.beginPath(); c.arc(q.x, q.y - r * 0.12, r * 0.24, Math.PI, 0); c.stroke();
+      c.fillRect(q.x - r * 0.36, q.y - r * 0.12, r * 0.72, r * 0.5);
+    } else { c.fillStyle = 'rgba(255,255,255,0.55)'; c.beginPath(); c.arc(q.x - r * 0.3, q.y - r * 0.35, r * 0.22, 0, 7); c.fill(); }
+  });
+  drawParticles(c, dt);
+}
+function drawParticles(c, dt) {
+  particles = particles.filter(p => (p.life -= dt * 0.9) > 0);
+  particles.forEach(p => { p.vy += 600 * dt; p.x += p.vx * dt; p.y += p.vy * dt; c.globalAlpha = Math.max(0, p.life); c.fillStyle = p.col; c.save(); c.translate(p.x, p.y); c.rotate(p.life * 8); c.fillRect(-3, -3, 6, 6); c.restore(); });
+  c.globalAlpha = 1;
+}
+
+/* ---------- money: rewarded ads, light interstitials, in-app purchases ----------
+   In the Android app this talks to AdMob and Google Play Billing. Everywhere else it runs in test mode:
+   ads are a short stand-in card and purchases are free test purchases, so every flow can be tried.
+   Before launch, swap the Google test ad unit ids below for real ones from AdMob. */
+const AD_UNITS = { rewarded: 'ca-app-pub-3940256099942544/5224354917', interstitial: 'ca-app-pub-3940256099942544/1033173712' };
+const AD_TESTING = true;   // set false for the release build once real ad unit ids are in
+// Product ids must match the in-app products created in Play Console. Prices here are fallbacks;
+// the app shows Google Play's local price once the store has loaded.
+const PRODUCTS = [
+  { id: 'remove_ads', name: 'Remove ads', once: true, noAds: true, price: '£2.99', desc: 'No more ads between levels, ever. Hints from ads stay available.' },
+  { id: 'hints_10', name: '10 hints', hints: 10, price: '£0.99', desc: 'A pouch of wizard hints.' },
+  { id: 'hints_40', name: '40 hints', hints: 40, price: '£2.99', desc: 'A whole spellbook of hints.', tag: 'Best value' },
+];
+const findProduct = id => PRODUCTS.find(p => p.id === id);
+const INTERSTITIAL = { everyLevels: 3, minGap: 90, fromLevel: 15 };
+const money = {
+  native: !!(window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform()),
+  granted: save.tx || [],   // transaction ids already paid out, so nothing is granted twice
+  lastInterstitial: 0, busy: false, adMob: null, billing: null,
+  async init() {
+    if (!this.native) return;
+    try {
+      this.adMob = Capacitor.Plugins.AdMob;
+      await this.adMob.initialize({ initializeForTesting: AD_TESTING });
+      // ask for ad consent where the law requires it (UK and EU)
+      try { const ci = await this.adMob.requestConsentInfo(); if (ci.isConsentFormAvailable && ci.status === 'REQUIRED') await this.adMob.showConsentForm(); } catch (e) {}
+      this.prepRewarded(); if (!save.noAds) this.prepInterstitial();
+    } catch (e) { this.adMob = null; }
+    try { await this.initBilling(); } catch (e) { this.billing = null; }
+  },
+  prepRewarded() { this.adMob && this.adMob.prepareRewardVideoAd({ adId: AD_UNITS.rewarded, isTesting: AD_TESTING }).catch(() => {}); },
+  prepInterstitial() { this.adMob && this.adMob.prepareInterstitial({ adId: AD_UNITS.interstitial, isTesting: AD_TESTING }).catch(() => {}); },
+  // the plugin only resolves showRewardVideoAd when the reward is earned, so listen for the close as well
+  nativeRewarded() {
+    return new Promise(async res => {
+      let earned = false, settled = false; const subs = [];
+      const done = v => { if (settled) return; settled = true; subs.forEach(h => h && h.remove && h.remove()); res(v); };
+      try {
+        subs.push(await this.adMob.addListener('onRewardedVideoAdReward', () => { earned = true; }));
+        subs.push(await this.adMob.addListener('onRewardedVideoAdDismissed', () => done(earned)));
+        subs.push(await this.adMob.addListener('onRewardedVideoAdFailedToShow', () => done(false)));
+        this.adMob.showRewardVideoAd().catch(() => done(false));
+      } catch (e) { done(false); }
+    });
+  },
+  nativeInterstitial() {
+    return new Promise(async res => {
+      let settled = false; const subs = [];
+      const done = () => { if (settled) return; settled = true; subs.forEach(h => h && h.remove && h.remove()); res(); };
+      try {
+        subs.push(await this.adMob.addListener('interstitialAdDismissed', done));
+        subs.push(await this.adMob.addListener('interstitialAdFailedToShow', done));
+        this.adMob.showInterstitial().catch(done);
+      } catch (e) { done(); }
+    });
+  },
+  // resolves true only if the player watched to the end and earned the reward
+  async rewarded(title) {
+    if (this.busy) return false; this.busy = true; let ok = false;
+    try {
+      if (this.native && this.adMob) { ok = await this.nativeRewarded(); this.prepRewarded(); }
+      else if (this.native) ok = false;
+      else ok = await testAd('rewarded', title);
+    } catch (e) { ok = false; this.prepRewarded(); }
+    this.busy = false; return ok;
+  },
+  // between levels only, now and then, never for anyone who bought Remove ads
+  async interstitial(levelIdx) {
+    if (save.noAds || levelIdx < INTERSTITIAL.fromLevel) return;
+    save.sinceAd++; persist();
+    const now = Date.now() / 1000;
+    if (save.sinceAd < INTERSTITIAL.everyLevels || now - this.lastInterstitial < INTERSTITIAL.minGap) return;
+    save.sinceAd = 0; persist(); this.lastInterstitial = now;
+    if (this.native) { if (this.adMob) { await this.nativeInterstitial(); this.prepInterstitial(); } }
+    else await testAd('inter', 'Thanks for playing Knot Wizard');
+  },
+  async initBilling() {
+    // cordova plugin scripts load after the page, so wait for deviceready before looking for the store
+    if (!window.CdvPurchase) await new Promise(r => { document.addEventListener('deviceready', r, { once: true }); setTimeout(r, 8000); });
+    if (!window.CdvPurchase) return;
+    const { store: st, ProductType, Platform } = CdvPurchase;
+    st.register(PRODUCTS.map(p => ({ id: p.id, type: p.once ? ProductType.NON_CONSUMABLE : ProductType.CONSUMABLE, platform: Platform.GOOGLE_PLAY })));
+    st.when()
+      .approved(tx => { tx.products.forEach(pr => grant(pr.id, tx.transactionId)); tx.finish(); })
+      .productUpdated(() => { if (!$('#shop').hidden) renderShop(); });
+    await st.initialize([Platform.GOOGLE_PLAY]);
+    this.billing = st;
+    // re-grant one-time purchases already owned (new phone, reinstall)
+    for (const p of PRODUCTS) if (p.once && st.owned(p.id)) grant(p.id, 'owned-' + p.id);
+  },
+  price(p) { const pr = this.billing && this.billing.get(p.id); return (pr && pr.pricing && pr.pricing.price) || p.price; },
+  ownsProduct(p) { return p.once && this.granted.some(t => t.endsWith(':' + p.id)); },
+  async buy(p) {
+    if (this.native) {
+      if (!this.billing) return 'The store is not available right now. Check your connection and try again.';
+      const pr = this.billing.get(p.id), offer = pr && pr.getOffer();
+      if (!offer) return 'That item is not available yet.';
+      const err = await offer.order();
+      return err && err.code !== CdvPurchase.ErrorCode.PAYMENT_CANCELLED ? 'The purchase did not go through.' : '';
+    }
+    grant(p.id, 'test-' + Date.now());   // web test version: granted straight away, nothing is charged
+    return 'Test purchase: nothing was charged. The app store version opens Google Play here.';
+  },
+  async restore() { if (this.billing) { await this.billing.restorePurchases(); for (const p of PRODUCTS) if (p.once && this.billing.owned(p.id)) grant(p.id, 'owned-' + p.id); } },
+};
+function grant(id, txId) {
+  const p = findProduct(id); if (!p) return;
+  const key = (txId || 'tx') + ':' + id;
+  if (money.granted.includes(key) || (p.once && money.ownsProduct(p))) return;
+  money.granted.push(key); save.tx = money.granted;
+  if (p.hints) save.hints += p.hints;
+  if (p.noAds) save.noAds = true;
+  persist(); chime();
+  if (!$('#shop').hidden) renderShop(`Thank you! You got ${p.hints ? p.hints + ' hints' : 'no more ads between levels'}.`);
+  if (!$('#menu').hidden) renderMenu();
+}
+// web stand-in for a video ad: a short bar the player can bail out of
+let adTimer = 0;
+function testAd(kind, title) {
+  return new Promise(res => {
+    $('#adTitle').textContent = title; $('#ad').hidden = false; const fill = $('#adFill'), skip = $('#adSkip');
+    skip.textContent = kind === 'rewarded' ? 'Close without reward' : 'Skip ad'; skip.hidden = kind !== 'rewarded';
+    const t0 = performance.now(), dur = kind === 'rewarded' ? 3200 : 2600; clearInterval(adTimer);
+    const done = ok => { clearInterval(adTimer); $('#ad').hidden = true; res(ok); };
+    skip.onclick = () => done(kind !== 'rewarded');
+    adTimer = setInterval(() => {
+      const k = Math.min(1, (performance.now() - t0) / dur); fill.style.width = (k * 100) + '%';
+      if (kind !== 'rewarded' && k > 0.6) skip.hidden = false;
+      if (k >= 1) done(true);
+    }, 50);
+  });
+}
+
+/* ---------- menu ---------- */
+let menuWorld = -1;
+const isOpen = i => i === 1 || (save.stars[i - 1] || 0) > 0;
+const worldStars = w => { let s = 0; for (let i = w * PER + 1; i <= (w + 1) * PER; i++) s += save.stars[i] || 0; return s; };
+function renderMenu() {
+  if (menuWorld < 0) menuWorld = worldOf(nextLevel());
+  applyTheme(menuWorld); if (ac) music.want(menuWorld);
+  $('#mStars').textContent = totalStars(); $('#mStarsMax').textContent = LAST * 3;
+  $('#mHints').textContent = save.hints;
+  $('#worlds').innerHTML = WORLDS.map((wd, w) => { const open = isOpen(w * PER + 1);
+    return `<button class="world" data-w="${w}" ${open ? '' : 'disabled'} aria-pressed="${w === menuWorld}">${wd.name}<small>${open ? `<span class="wst"><svg><use href="#i-star"/></svg>${worldStars(w)}/${PER * 3}</span>` : 'Locked · ' + wd.sub}</small></button>`; }).join('');
+  const next = nextLevel();
+  let h = '';
+  for (let li = 1; li <= PER; li++) {
+    const i = menuWorld * PER + li, st = save.stars[i] || 0, open = isOpen(i);
+    const stars = [0, 1, 2].map(k => `<svg style="color:${k < st ? 'var(--honey)' : 'rgba(255,255,255,0.18)'}"><use href="#i-star"/></svg>`).join('');
+    h += open ? `<button class="lv ${st ? 'done' : ''} ${i === next ? 'next' : ''}" data-l="${i}" aria-label="${WORLDS[menuWorld].name} level ${li}, ${st} stars">${li}<span class="st">${stars}</span></button>`
+              : `<button class="lv" disabled aria-label="${WORLDS[menuWorld].name} level ${li}, locked"><svg class="lock"><use href="#i-lock"/></svg></button>`;
+  }
+  $('#grid').innerHTML = h;
+  $('#gridLabel').textContent = `${WORLDS[menuWorld].name} · ${WORLDS[menuWorld].sub}`;
+  const k = todayKey(), done = save.daily.last === k;
+  const streak = save.daily.last === k || save.daily.last === yesterdayKey() ? save.daily.streak : 0;
+  $('#dailySub').textContent = `${done ? 'Solved today' : 'One hard knot, new every day'} · streak ${streak} day${streak === 1 ? '' : 's'}`;
+  $('#dailyGo').textContent = done ? 'Replay' : 'Play';
+  $('#mSound').textContent = save.sound ? 'Sound on' : 'Sound off';
+  $('#mMusic').textContent = save.music ? 'Music on' : 'Music off';
+  $('#mPlay').textContent = totalStars() ? `Play ${WORLDS[worldOf(next)].name} ${localOf(next)}` : 'Play';
+}
+function nextLevel() { for (let i = 1; i <= LAST; i++) if (!save.stars[i] && isOpen(i)) return i; return LAST; }
+$('#worlds').addEventListener('click', e => { const b = e.target.closest('[data-w]'); if (b && !b.disabled) { menuWorld = +b.dataset.w; renderMenu(); } });
+$('#grid').addEventListener('click', e => { const b = e.target.closest('[data-l]'); if (b) startPuzzle('level', +b.dataset.l); });
+$('#mPlay').onclick = () => startPuzzle('level', nextLevel());
+$('#dailyGo').onclick = () => startPuzzle('daily', 0);
+$('#mSound').onclick = () => { save.sound = !save.sound; persist(); music.want(menuWorld); renderMenu(); };
+$('#mMusic').onclick = () => { save.music = !save.music; persist(); music.want(menuWorld); renderMenu(); };
+// browsers only allow sound after a tap, so the menu music starts on the first one
+document.addEventListener('pointerdown', () => { if (!music.timer && save.music && save.sound) music.want(G ? G.w : Math.max(0, menuWorld)); }, true);
+function show(id) { $('#menu').hidden = id !== 'menu'; $('#game').hidden = id !== 'game'; }
+
+/* ---------- shop ---------- */
+function preview(cnv, skin) {
+  const d = 2, c = cnv.getContext('2d'); cnv.width = 64 * d; cnv.height = 32 * d; c.scale(d, d);
+  c.fillStyle = '#e6eed6'; c.fillRect(0, 0, 64, 32);
+  drawRope(c, { x: 10, y: 22 }, { x: 54, y: 10 }, 0, 6, skin, '', 0.3);
+}
+function renderShop(msg) {
+  const ts = totalStars();
+  $('#skins').innerHTML = SKINS.map(s => {
+    const own = ts >= s.need, eq = save.skin === s.id;
+    return `<div class="item"><canvas data-skin="${s.id}" aria-hidden="true"></canvas><div class="info"><b>${s.name}</b><small>${own ? s.desc : `Collect ${s.need} stars (you have ${ts})`}</small></div>
+      <button class="buy ${eq ? 'eq' : ''}" data-eq="${s.id}" ${!own || eq ? 'disabled' : ''}>${eq ? 'Equipped' : own ? 'Equip' : s.need + ' ★'}</button></div>`;
+  }).join('');
+  document.querySelectorAll('#skins canvas').forEach(cn => preview(cn, cn.dataset.skin));
+  $('#extras').innerHTML = `<div class="item"><div class="info"><b>Free hint</b><small>Watch a short ad. You have ${save.hints}.</small></div><button class="buy ad" id="xHint">Watch ad</button></div>` +
+    PRODUCTS.map(p => { const owned = money.ownsProduct(p) || (p.noAds && save.noAds);
+      return `<div class="item"><div class="info"><b>${p.name}${p.tag ? ` · ${p.tag}` : ''}</b><small>${owned ? 'Owned. Thank you!' : p.desc}</small></div><button class="buy" data-iap="${p.id}" ${owned ? 'disabled' : ''}>${owned ? 'Owned' : money.price(p)}</button></div>`; }).join('') +
+    (money.native ? `<div class="row"><button class="ghost" id="xRestore">Restore purchases</button></div>` : '');
+  $('#shopMsg').textContent = msg || (money.native ? '' : 'Test mode: nothing is charged here.');
+  $('#xHint').onclick = () => money.rewarded('Watch to earn a hint').then(ok => { if (ok) { save.hints++; persist(); renderShop('You got 1 hint.'); } });
+  document.querySelectorAll('[data-iap]').forEach(b => b.onclick = async () => { b.disabled = true; const err = await money.buy(findProduct(b.dataset.iap)); renderShop(err); });
+  const r = $('#xRestore'); if (r) r.onclick = async () => { await money.restore(); renderShop('Purchases restored.'); };
+}
+$('#skins').addEventListener('click', e => { const b = e.target.closest('[data-eq]'); if (b && !b.disabled) { save.skin = b.dataset.eq; persist(); renderShop(); } });
+$('#mShop').onclick = () => { renderShop(); $('#shop').hidden = false; };
+$('#shopClose').onclick = () => { $('#shop').hidden = true; renderMenu(); };
+
+/* ---------- misc ---------- */
+let toastT = 0;
+function toast(t) { const el = $('#toast'); el.textContent = t; el.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => el.hidden = true, 2200); }
+
+// hooks for the clip recorder (tools/record-clips.js); absent in normal play
+if (window.__kwCapture) window.__kwCapture.api = { startPuzzle, levelDef, toPx, tryMove, bestMove, crossings, incidence, songStep, musicBus, toneAt, SONGS, WORLDS, PER, get G() { return G; } };
+renderMenu(); show('menu'); money.init();
+})();
+</script>
+
+<script>if ('serviceWorker' in navigator && !window.Capacitor) addEventListener('load', () => navigator.serviceWorker.register('sw.js'));</script>
+</body>
+</html>
