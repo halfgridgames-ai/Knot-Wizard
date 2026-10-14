@@ -30,4 +30,4 @@ Knot Wizard contains optional ads and in-app purchases.
 **Graphics in this folder:**
 - `feature-graphic-1024x500.png`: the Play feature graphic (required)
 - App icon 512 px: `../web/icon-512.png`
-- Phone screenshots (at least 2): take them from the installed app, or from the web version at 1080x1920
+- Phone screenshots: `screenshots/` has 6 at 1080x1920 (one per world plus the menu)
