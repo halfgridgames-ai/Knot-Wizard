@@ -25,7 +25,7 @@ Knot Wizard contains optional ads and in-app purchases.
 **Category:** Puzzle
 **Tags:** puzzle, untangle, relaxing, logic, casual
 **Contact email:** CONTACT_EMAIL
-**Privacy policy:** https://halfgridgames-ai.github.io/knot-wizard/privacy.html
+**Privacy policy:** https://halfgridgames-ai.github.io/Knot-Wizard/privacy.html
 
 **Graphics in this folder:**
 - `feature-graphic-1024x500.png`: the Play feature graphic (required)
