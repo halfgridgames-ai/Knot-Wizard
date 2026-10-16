@@ -6,13 +6,13 @@ Re-run whenever the game icon changes. Needs Pillow (pip install pillow).
 """
 import os
 import sys
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFilter
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 APP = os.path.dirname(HERE)
 SRC = sys.argv[1] if len(sys.argv) > 1 else os.path.join(APP, "..", "web", "icon-512.png")
 RES = os.path.join(APP, "android", "app", "src", "main", "res")
-BG = (0x1C, 0x3A, 0x2E, 255)  # #1c3a2e
+BG = (0x1C, 0x3A, 0x2E, 255)  # #1c3a2e, the game background
 
 DENSITIES = {"mdpi": 1.0, "hdpi": 1.5, "xhdpi": 2.0, "xxhdpi": 3.0, "xxxhdpi": 4.0}
 SS = 4  # supersampling factor for smooth mask edges
@@ -49,10 +49,18 @@ def main():
         legacy(src, px, "square").save(os.path.join(d, "ic_launcher.png"))
         legacy(src, px, "circle").save(os.path.join(d, "ic_launcher_round.png"))
         # Adaptive foreground: 108dp layer, launcher shows the centre 72dp (safe circle 66dp).
-        # The game icon is full-bleed artwork, so it fills the whole layer; the wizard
-        # sits inside the safe zone. Background colour lives in values/ic_launcher_background.xml.
+        # The art is shrunk to 80dp with a feathered edge so the corner pins stay visible;
+        # values/ic_launcher_background.xml matches the icon's dark green edge.
         fg_px = round(108 * scale)
-        src.resize((fg_px, fg_px), Image.LANCZOS).save(os.path.join(d, "ic_launcher_foreground.png"))
+        art_px = round(80 * scale)
+        art = src.resize((art_px, art_px), Image.LANCZOS)
+        feather = Image.new("L", (art_px, art_px), 0)
+        pad = max(2, art_px // 30)
+        ImageDraw.Draw(feather).rectangle((pad, pad, art_px - 1 - pad, art_px - 1 - pad), fill=255)
+        art.putalpha(feather.filter(ImageFilter.GaussianBlur(pad)))
+        fg = Image.new("RGBA", (fg_px, fg_px), (0, 0, 0, 0))
+        fg.alpha_composite(art, ((fg_px - art_px) // 2, (fg_px - art_px) // 2))
+        fg.save(os.path.join(d, "ic_launcher_foreground.png"))
 
     # Splash screens (shown while the WebView boots): icon centred on the game background colour.
     for f in os.listdir(RES):
