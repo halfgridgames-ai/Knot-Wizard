@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Copy the built web game (../web) into www/ and sync it into the Android project.
-# Run from anywhere:  bash android-app/sync-web.sh
+# Copy the built web game (../web) into www/ and sync it into the native project.
+# Run from anywhere:  bash android-app/sync-web.sh [android|ios]   (default android)
 set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SRC="$HERE/../web"
@@ -24,4 +24,4 @@ for f in "$SRC"/*; do
 done
 
 cd "$HERE"
-npx cap sync android
+npx cap sync "${1:-android}"
