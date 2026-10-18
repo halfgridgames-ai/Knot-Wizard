@@ -988,13 +988,16 @@ function drawParticles(c, dt) {
 }
 
 /* ---------- money: rewarded ads, light interstitials, in-app purchases ----------
-   In the Android app this talks to AdMob and Google Play Billing. Everywhere else it runs in test mode:
-   ads are a short stand-in card and purchases are free test purchases, so every flow can be tried.
-   Before launch, swap the Google test ad unit ids below for real ones from AdMob. */
-const AD_UNITS = { rewarded: 'ca-app-pub-3940256099942544/5224354917', interstitial: 'ca-app-pub-3940256099942544/1033173712' };
+   In the Android and iPhone apps this talks to AdMob and Google Play Billing / the App Store. Everywhere else
+   it runs in test mode: ads are a short stand-in card and purchases are free test purchases, so every flow can be tried.
+   Before launch, swap the Google test ad unit ids below for real ones from AdMob (each app has its own). */
+const PLATFORM = (window.Capacitor && Capacitor.getPlatform && Capacitor.getPlatform()) || 'web';
+const AD_UNITS = PLATFORM === 'ios'
+  ? { rewarded: 'ca-app-pub-3940256099942544/1712485313', interstitial: 'ca-app-pub-3940256099942544/4411468910' }
+  : { rewarded: 'ca-app-pub-3940256099942544/5224354917', interstitial: 'ca-app-pub-3940256099942544/1033173712' };
 const AD_TESTING = true;   // set false for the release build once real ad unit ids are in
-// Product ids must match the in-app products created in Play Console. Prices here are fallbacks;
-// the app shows Google Play's local price once the store has loaded.
+// Product ids must match the in-app products created in Play Console and App Store Connect. Prices here are
+// fallbacks; the app shows the store's local price once it has loaded.
 const PRODUCTS = [
   { id: 'remove_ads', name: 'Remove ads', once: true, noAds: true, price: '£2.99', desc: 'No more ads between levels, ever. Hints from ads stay available.' },
   { id: 'hints_10', name: '10 hints', hints: 10, price: '£0.99', desc: 'A pouch of wizard hints.' },
@@ -1013,6 +1016,8 @@ const money = {
       await this.adMob.initialize({ initializeForTesting: AD_TESTING });
       // ask for ad consent where the law requires it (UK and EU)
       try { const ci = await this.adMob.requestConsentInfo(); if (ci.isConsentFormAvailable && ci.status === 'REQUIRED') await this.adMob.showConsentForm(); } catch (e) {}
+      // iPhone: Apple's "Allow tracking?" prompt, asked once, after the consent form
+      if (PLATFORM === 'ios') try { const t = await this.adMob.trackingAuthorizationStatus(); if (t.status === 'notDetermined') await this.adMob.requestTrackingAuthorization(); } catch (e) {}
       this.prepRewarded(); if (!save.noAds) this.prepInterstitial();
     } catch (e) { this.adMob = null; }
     try { await this.initBilling(); } catch (e) { this.billing = null; }
@@ -1068,11 +1073,12 @@ const money = {
     if (!window.CdvPurchase) await new Promise(r => { document.addEventListener('deviceready', r, { once: true }); setTimeout(r, 8000); });
     if (!window.CdvPurchase) return;
     const { store: st, ProductType, Platform } = CdvPurchase;
-    st.register(PRODUCTS.map(p => ({ id: p.id, type: p.once ? ProductType.NON_CONSUMABLE : ProductType.CONSUMABLE, platform: Platform.GOOGLE_PLAY })));
+    const storePlatform = PLATFORM === 'ios' ? Platform.APPLE_APPSTORE : Platform.GOOGLE_PLAY;
+    st.register(PRODUCTS.map(p => ({ id: p.id, type: p.once ? ProductType.NON_CONSUMABLE : ProductType.CONSUMABLE, platform: storePlatform })));
     st.when()
       .approved(tx => { tx.products.forEach(pr => grant(pr.id, tx.transactionId)); tx.finish(); })
       .productUpdated(() => { if (!$('#shop').hidden) renderShop(); });
-    await st.initialize([Platform.GOOGLE_PLAY]);
+    await st.initialize([storePlatform]);
     this.billing = st;
     // re-grant one-time purchases already owned (new phone, reinstall)
     for (const p of PRODUCTS) if (p.once && st.owned(p.id)) grant(p.id, 'owned-' + p.id);
@@ -1088,7 +1094,7 @@ const money = {
       return err && err.code !== CdvPurchase.ErrorCode.PAYMENT_CANCELLED ? 'The purchase did not go through.' : '';
     }
     grant(p.id, 'test-' + Date.now());   // web test version: granted straight away, nothing is charged
-    return 'Test purchase: nothing was charged. The app store version opens Google Play here.';
+    return 'Test purchase: nothing was charged. The app store version opens the real store here.';
   },
   async restore() { if (this.billing) { await this.billing.restorePurchases(); for (const p of PRODUCTS) if (p.once && this.billing.owned(p.id)) grant(p.id, 'owned-' + p.id); } },
 };

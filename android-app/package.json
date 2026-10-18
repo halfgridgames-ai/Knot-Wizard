@@ -10,6 +10,7 @@
     "@capacitor-community/admob": "8.2.1",
     "@capacitor/android": "8.5.3",
     "@capacitor/core": "8.5.3",
+    "@capacitor/ios": "8.5.3",
     "cordova-plugin-purchase": "13.18.0"
   },
   "devDependencies": {
