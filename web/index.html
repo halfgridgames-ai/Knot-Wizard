@@ -748,6 +748,7 @@ function startPuzzle(kind, idx) {
   const intro = kind === 'level' && localOf(idx) <= 2 && WORLDS[w].intro;
   if (intro) { say(intro, 3200); if (localOf(idx) === 1) toast(intro); } else say(`Untie ${G.cross} knot${G.cross === 1 ? '' : 's'}`);
   show('game'); resize();
+  track('level_start', { level_name: levelName(G), level: kind === 'daily' ? 0 : idx, world: w });
   if (!running) { running = true; requestAnimationFrame(loop); }
 }
 function updateHud() {
@@ -863,6 +864,7 @@ function win() {
     sub = `Daily streak: ${save.daily.streak} day${save.daily.streak === 1 ? '' : 's'}. A new knot appears tomorrow.`;
   }
   persist();
+  track('level_end', { level_name: levelName(G), success: true, moves: m, stars });
   setTimeout(() => {
     $('#wTitle').textContent = stars === 3 ? 'Spellbound!' : 'Untangled!';
     $('#wStars').innerHTML = [0, 1, 2].map(i => `<svg class="${i < stars ? 'on' : ''}" style="color:${i < stars ? 'var(--honey)' : 'rgba(255,255,255,0.15)'}"><use href="#i-star"/></svg>`).join('');
@@ -987,6 +989,17 @@ function drawParticles(c, dt) {
   c.globalAlpha = 1;
 }
 
+/* ---------- analytics ----------
+   In the Android app this logs events to Firebase Analytics, which also collects installs, sessions and
+   retention on its own. Everywhere else, and in builds without google-services.json, it does nothing. */
+function track(name, params) {
+  try {
+    const fa = window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform() && Capacitor.Plugins.FirebaseAnalytics;
+    if (fa) fa.logEvent({ name, params: params || {} }).catch(() => {});
+  } catch (e) {}
+}
+function levelName(g) { return g.kind === 'daily' ? 'daily' : 'level_' + g.idx; }
+
 /* ---------- money: rewarded ads, light interstitials, in-app purchases ----------
    In the Android app this talks to AdMob and Google Play Billing. Everywhere else it runs in test mode:
    ads are a short stand-in card and purchases are free test purchases, so every flow can be tried.
@@ -1051,6 +1064,7 @@ const money = {
       else if (this.native) ok = false;
       else ok = await testAd('rewarded', title);
     } catch (e) { ok = false; this.prepRewarded(); }
+    if (ok) track('rewarded_ad_watched', { placement: title });
     this.busy = false; return ok;
   },
   // between levels only, now and then, never for anyone who bought Remove ads
