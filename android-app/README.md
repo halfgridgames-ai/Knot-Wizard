@@ -2,12 +2,13 @@
 
 This folder turns the web game into an Android app you can install on a phone and
 publish on Google Play. It uses [Capacitor](https://capacitorjs.com) 8, which wraps the
-game in a full-screen Android WebView and adds two native plugins:
+game in a full-screen Android WebView and adds three native plugins:
 
 | Plugin | What it does | How the game reaches it |
 | --- | --- | --- |
 | `@capacitor-community/admob` 8.2.1 | Google AdMob ads (rewarded, interstitial, consent form) | `Capacitor.Plugins.AdMob` |
 | `cordova-plugin-purchase` 13.18.0 | Google Play Billing (in-app purchases) | `window.CdvPurchase` (after `deviceready`) |
+| `@capacitor-firebase/analytics` 8.5.2 | Firebase Analytics (installs, retention, level events) | `Capacitor.Plugins.FirebaseAnalytics` via `track()` |
 
 App id: `com.halfgridgames.knotwizard` - App name: **Knot Wizard**
 
@@ -82,6 +83,38 @@ The next run also uploads **knot-wizard-release-aab**. Unzip it and upload
 For a local signed build, set the same names as environment variables, with
 `KW_KEYSTORE` set to the path of the .jks file, or put them in `~/.gradle/gradle.properties`.
 If they are missing, the build still works and only the release output is left unsigned.
+
+## Analytics (Firebase)
+
+Firebase Analytics shows how many people install the game, how many come back on day 1,
+day 7 and day 30, and how far they get. It collects installs, sessions, retention and
+in-app purchases on its own; the game adds a few events through `track()` in `index.html`
+(see the list below). Google Ads uses the same data to find players who keep playing.
+
+Analytics stays off until the app has a `google-services.json`. The app builds and runs
+fine without it. To turn it on:
+
+1. Go to [console.firebase.google.com](https://console.firebase.google.com) and create a
+   project (one Half Grid Games project can hold every game). Turn Google Analytics on
+   when asked.
+2. Add an Android app with package name `com.halfgridgames.knotwizard`.
+3. Download `google-services.json` and put it in `android-app/android/app/`, then push to
+   `main`. (It holds no secrets; Firebase expects it to be committed.)
+4. In Firebase, Project settings -> Integrations: link **AdMob** (ad revenue per player) and
+   **Google Play** (purchases), and later **Google Ads** for install campaigns.
+5. Update the Play Console **Data safety** form: the app now collects app interactions
+   and device ids for analytics, shared with Google.
+
+Events the game logs:
+
+| Event | When | Details |
+| --- | --- | --- |
+| `level_start` | a level or the Daily Knot begins | `level_name` (`level_12`, `daily`), `level`, `world` |
+| `level_end` | a level is untangled | `level_name`, `success`, `moves`, `stars` |
+| `rewarded_ad_watched` | a hint video is watched to the end | `placement` |
+
+Events show up in Firebase within a day (Analytics -> Events); DebugView shows them live
+for a test phone.
 
 ## Before launch: swap test ids for real ones
 
