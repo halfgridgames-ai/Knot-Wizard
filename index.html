@@ -43,7 +43,6 @@ h1 { font-family: var(--display); font-weight: 800; font-size: clamp(40px, 11vw,
 .daily .dtop { display: flex; align-items: center; gap: 12px; }
 .daily canvas { width: 58px; height: 58px; flex: none; border-radius: 14px; background: rgba(255,255,255,0.12); }
 .daily .info b { font-size: 20px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.daily .dnum { color: var(--honey); font-size: 15px; }
 .week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
 .week span { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 11px; font-weight: 800; color: #cfc3f5; }
 .week i { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: rgba(0,0,0,0.22); font-style: normal; font-size: 14px; }
@@ -145,6 +144,12 @@ body, .icon-btn, .tool, .moves, .lv, .chip { transition: background-color .4s; }
 .stat span { display: flex; flex-direction: column; align-items: center; }
 .stat small { font-size: 11px; color: var(--ink-dim); text-transform: uppercase; letter-spacing: 0.08em; }
 .stat b { font-family: var(--display); font-size: 26px; }
+.book { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.book > div { background: rgba(255,255,255,0.06); border: 1px solid var(--line); border-radius: 14px; padding: 6px 4px 8px; display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center; }
+.book canvas { width: 100%; max-width: 96px; aspect-ratio: 1; }
+.book b { font-size: 12px; font-weight: 800; line-height: 1.15; }
+.book small { font-size: 11px; color: var(--ink-dim); font-weight: 700; }
+.book .q { width: 100%; max-width: 96px; aspect-ratio: 1; display: grid; place-items: center; font-family: var(--display); font-size: 40px; color: rgba(255,255,255,0.18); }
 .items { display: flex; flex-direction: column; gap: 8px; }
 .item { display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,0.05); border-radius: 14px; padding: 10px 12px; }
 .item canvas { width: 64px; height: 32px; flex: none; border-radius: 8px; background: var(--felt); }
@@ -290,7 +295,7 @@ HGSplash.show();
       <div class="daily">
         <div class="dtop">
           <canvas id="dPic" width="116" height="116" aria-hidden="true"></canvas>
-          <div class="info"><b>Daily Knot <span class="dnum" id="dNum"></span></b><small id="dailySub"></small></div>
+          <div class="info"><b>Daily Knot</b><small id="dailySub"></small></div>
           <button class="go plum" id="dailyGo">Play</button>
         </div>
         <div class="week" id="dWeek"></div>
@@ -306,6 +311,7 @@ HGSplash.show();
       </div>
       <div class="menu-row">
         <button class="go" id="mPlay">Play</button>
+        <button class="ghost" id="mBook">Spellbook</button>
         <button class="ghost" id="mShop">Shop</button>
         <button class="ghost" id="mSound">Sound on</button>
         <button class="ghost" id="mMusic">Music on</button>
@@ -340,6 +346,15 @@ HGSplash.show();
     <p id="wSub"></p>
     <p class="reward" id="wReward" hidden></p>
     <div class="row"><button class="go" id="wNext">Next level</button><button class="go" id="wShare" hidden>Share</button><button class="ghost" id="wRetry">Replay</button><button class="ghost" id="wMenu">Levels</button></div>
+  </div>
+</div>
+
+<div class="overlay" id="book" hidden>
+  <div class="card">
+    <h2>Spellbook</h2>
+    <p id="bookSub"></p>
+    <div class="book" id="bookGrid"></div>
+    <div class="row"><button class="go" id="bookClose">Done</button></div>
   </div>
 </div>
 
@@ -599,6 +614,87 @@ const PICTURES = [];
 { const p = [[30, 14], [50, 14], [70, 14], [8, 40], [30, 40], [50, 40], [70, 40], [92, 40], [50, 100]];
   const E = [[0, 1], [1, 2], [0, 3], [2, 7], [3, 4], [4, 5], [5, 6], [6, 7], [0, 4], [1, 4], [1, 5], [1, 6], [2, 6], [3, 8], [4, 8], [5, 8], [6, 8], [7, 8]];
   PICTURES.push({ id: 'gem', name: 'a magic gem', h: 110, p, E, f: [['#5bc0eb', [0, 1, 4]], ['#8fd8f5', [1, 5, 4]], ['#5bc0eb', [1, 6, 5]], ['#8fd8f5', [1, 2, 6]], ['#3a9fd0', [0, 4, 3]], ['#3a9fd0', [2, 7, 6]], ['#2f86b8', [3, 4, 8]], ['#5bc0eb', [4, 5, 8]], ['#8fd8f5', [5, 6, 8]], ['#2f86b8', [6, 7, 8]]] }); }
+// Rocket
+{ const p = [[50, 4], [34, 38], [66, 38], [34, 108], [66, 108], [12, 132], [88, 132], [34, 82], [66, 82], [50, 140], [50, 62]];
+  const E = [[0, 1], [0, 2], [1, 2], [1, 7], [7, 3], [2, 8], [8, 4], [3, 4], [7, 5], [5, 3], [8, 6], [6, 4], [3, 9], [9, 4], [1, 10], [2, 10], [7, 10], [8, 10]];
+  PICTURES.push({ id: 'rocket', name: 'a rocket', h: 144, p, E, f: [['#f2ede2', [1, 7, 3, 4, 8, 2]], ['#e4566e', [0, 1, 2]], ['#e4566e', [7, 5, 3]], ['#e4566e', [8, 6, 4]], ['#f5b83d', [3, 9, 4]]] }); }
+// Owl
+{ const p = [[16, 6], [50, 22], [84, 6], [8, 42], [92, 42], [14, 80], [86, 80], [32, 104], [68, 104], [32, 42], [68, 42], [50, 58]];
+  const E = [[0, 1], [1, 2], [0, 3], [2, 4], [3, 5], [4, 6], [5, 7], [6, 8], [7, 8], [1, 9], [1, 10], [9, 11], [10, 11], [3, 9], [4, 10], [11, 7], [11, 8]];
+  PICTURES.push({ id: 'owl', name: 'a wise owl', h: 108, p, E, f: [['#9b6a3c', [0, 1, 2, 4, 6, 8, 7, 5, 3]], ['#f2d7a8', [1, 10, 11, 9]], ['#c9955c', [11, 8, 7]]] }); }
+// Mushroom
+{ const p = [[6, 56], [14, 30], [32, 12], [50, 6], [68, 12], [86, 30], [94, 56], [64, 56], [36, 56], [32, 100], [68, 100], [50, 30]];
+  const E = cyc(0, 6).slice(0, 6).concat([[6, 7], [7, 8], [8, 0], [8, 9], [9, 10], [10, 7], [11, 3], [11, 8], [11, 7]]);
+  PICTURES.push({ id: 'mushroom', name: 'a toadstool', h: 106, p, E, f: [['#e4566e', [0, 1, 2, 3, 4, 5, 6, 7, 8]], ['#f07b8e', [3, 4, 5, 6, 7, 11]], ['#f6ecd2', [8, 9, 10, 7]]] }); }
+// Crown
+{ const p = [[10, 76], [90, 76], [90, 50], [96, 10], [70, 32], [50, 4], [30, 32], [4, 10], [10, 50], [50, 62]];
+  const E = [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 7], [7, 8], [8, 0], [8, 9], [9, 2]];
+  PICTURES.push({ id: 'crown', name: 'a royal crown', h: 80, p, E, f: [['#f5b83d', [8, 7, 6, 5, 4, 3, 2, 9]], ['#d99a22', [0, 1, 2, 9, 8]]] }); }
+// Key
+{ const p = [[50, 4], [72, 18], [72, 44], [50, 58], [28, 44], [28, 18], [50, 96], [70, 96], [70, 114], [50, 114], [50, 144]];
+  const E = cyc(0, 5).concat([[3, 6], [6, 7], [7, 8], [8, 9], [9, 6], [9, 10]]);
+  PICTURES.push({ id: 'key', name: 'a golden key', h: 148, p, E, f: [['#f5b83d', [0, 1, 2, 3, 4, 5]], ['#d99a22', [6, 7, 8, 9]]] }); }
+// Castle
+{ const p = [[6, 116], [6, 30], [22, 30], [22, 48], [36, 48], [36, 26], [50, 6], [64, 26], [64, 48], [78, 48], [78, 30], [94, 30], [94, 116], [60, 116], [60, 92], [40, 92], [40, 116]];
+  const E = cyc(0, 16).concat([[5, 7]]);
+  PICTURES.push({ id: 'castle', name: 'a castle', h: 120, p, E, f: [['#b9bccb', [0, 1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]], ['#4a8fd9', [5, 6, 7]], ['#8a5a2e', [13, 14, 15, 16]]] }); }
+// Umbrella
+{ const p = [[4, 60], [16, 30], [34, 12], [50, 6], [66, 12], [84, 30], [96, 60], [72, 52], [50, 58], [28, 52], [50, 112], [62, 126], [74, 112]];
+  const E = cyc(0, 9).concat([[3, 8], [2, 9], [4, 7], [8, 10], [10, 11], [11, 12]]);
+  PICTURES.push({ id: 'umbrella', name: 'an umbrella', h: 130, p, E, f: [['#e4566e', [0, 1, 2, 9]], ['#f6ecd2', [2, 3, 8, 9]], ['#e4566e', [3, 4, 7, 8]], ['#f6ecd2', [4, 5, 6, 7]]] }); }
+// Butterfly
+{ const p = [[50, 24], [50, 80], [12, 4], [2, 42], [50, 50], [10, 64], [22, 98], [88, 4], [98, 42], [90, 64], [78, 98], [36, 4], [64, 4]];
+  const E = [[0, 2], [2, 3], [3, 4], [0, 4], [4, 5], [5, 6], [6, 1], [1, 4], [0, 7], [7, 8], [8, 4], [4, 9], [9, 10], [10, 1], [0, 11], [0, 12]];
+  PICTURES.push({ id: 'butterfly', name: 'a butterfly', h: 102, p, E, f: [['#f08a3c', [0, 2, 3, 4]], ['#f08a3c', [0, 7, 8, 4]], ['#f5b83d', [4, 5, 6, 1]], ['#f5b83d', [4, 9, 10, 1]]] }); }
+// Envelope
+{ const p = [[6, 6], [94, 6], [94, 66], [6, 66], [50, 40], [36, 50], [64, 50]];
+  const E = [[0, 1], [1, 2], [2, 3], [3, 0], [0, 4], [4, 1], [3, 5], [5, 4], [4, 6], [6, 2]];
+  PICTURES.push({ id: 'letter', name: 'a letter', h: 72, p, E, f: [['#f6ecd2', [0, 1, 2, 3]], ['#e8d9b4', [0, 4, 1]], ['#efe3c6', [3, 5, 4, 6, 2]]] }); }
+// Kite
+{ const p = [[50, 4], [84, 44], [50, 104], [16, 44], [50, 44], [38, 122], [60, 134], [44, 150]];
+  const E = cyc(0, 3).concat([[0, 4], [1, 4], [2, 4], [3, 4], [2, 5], [5, 6], [6, 7]]);
+  PICTURES.push({ id: 'kite', name: 'a kite', h: 154, p, E, f: [['#4a8fd9', [0, 1, 4]], ['#f5b83d', [1, 2, 4]], ['#4a8fd9', [2, 3, 4]], ['#f5b83d', [3, 0, 4]]] }); }
+// Teacup
+{ const p = [[6, 20], [80, 20], [74, 56], [58, 76], [28, 76], [12, 56], [96, 28], [92, 52], [4, 88], [96, 88]];
+  const E = cyc(0, 5).concat([[1, 6], [6, 7], [7, 2], [4, 8], [8, 9], [9, 3]]);
+  PICTURES.push({ id: 'teacup', name: 'a teacup', h: 92, p, E, f: [['#7fc8f0', [0, 1, 2, 3, 4, 5]], ['#f6ecd2', [4, 3, 9, 8]]] }); }
+// Bell
+{ const p = [[50, 6], [66, 22], [70, 50], [92, 86], [8, 86], [30, 50], [34, 22], [50, 104], [50, 86]];
+  const E = [[0, 1], [1, 2], [2, 3], [3, 8], [8, 4], [4, 5], [5, 6], [6, 0], [5, 2], [8, 7]];
+  PICTURES.push({ id: 'bell', name: 'a bell', h: 108, p, E, f: [['#f5b83d', [6, 0, 1, 2, 5]], ['#d99a22', [5, 2, 3, 8, 4]]] }); }
+// Leaf
+{ const p = [[50, 4], [78, 26], [90, 60], [74, 96], [50, 110], [26, 96], [10, 60], [22, 26], [50, 128], [50, 40], [50, 76]];
+  const E = cyc(0, 7).concat([[0, 9], [9, 10], [10, 4], [4, 8], [9, 1], [9, 7], [10, 2], [10, 6]]);
+  PICTURES.push({ id: 'leaf', name: 'a leaf', h: 132, p, E, f: [['#5cc47a', [0, 1, 9]], ['#4aa866', [0, 9, 7]], ['#4aa866', [9, 1, 2, 10]], ['#5cc47a', [9, 10, 6, 7]], ['#5cc47a', [10, 2, 3, 4]], ['#4aa866', [10, 4, 5, 6]]] }); }
+// Snowman
+{ const p = [[50, 12], [69, 22], [69, 44], [50, 56], [31, 44], [31, 22], [80, 68], [92, 98], [80, 128], [50, 140], [20, 128], [8, 98], [20, 68], [36, 2], [64, 2]];
+  const E = cyc(0, 5).concat([[3, 6], [6, 7], [7, 8], [8, 9], [9, 10], [10, 11], [11, 12], [12, 3], [13, 14], [13, 0], [14, 0]]);
+  PICTURES.push({ id: 'snowman', name: 'a snowman', h: 144, p, E, f: [['#ffffff', [0, 1, 2, 3, 4, 5]], ['#f2f6fa', [3, 6, 7, 8, 9, 10, 11, 12]], ['#2d3140', [13, 14, 0]]] }); }
+// Lightning bolt
+{ const p = [[62, 4], [22, 82], [48, 82], [36, 146], [82, 58], [56, 58], [80, 4]];
+  const E = cyc(0, 6).concat([[2, 5]]);
+  PICTURES.push({ id: 'bolt', name: 'a lightning bolt', h: 150, p, E, f: [['#f5d03d', [0, 1, 2, 5, 6]], ['#f5b83d', [2, 3, 4, 5]]] }); }
+// Sun
+{ const p = []; for (let i = 0; i < 12; i++) { const a = (-90 + i * 30) * Math.PI / 180, r = i % 2 ? 24 : 48; p.push([Math.round(50 + r * Math.cos(a)), Math.round(50 + r * Math.sin(a))]); } p.push([50, 50]);
+  const E = cyc(0, 11).concat([[1, 12], [5, 12], [9, 12]]);
+  PICTURES.push({ id: 'sun', name: 'the sun', h: 100, p, E, f: [['#f5b83d', [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]], ['#ffd979', [1, 3, 5, 12]], ['#ffd979', [5, 7, 9, 12]], ['#ffd979', [9, 11, 1, 12]]] }); }
+// Flower
+{ const p = []; for (let i = 0; i < 10; i++) { const a = (-90 + i * 36) * Math.PI / 180, r = i % 2 ? 17 : 36; p.push([Math.round(50 + r * Math.cos(a)), Math.round(40 + r * Math.sin(a))]); }
+  p.push([50, 40], [50, 140], [50, 106], [76, 92], [68, 118]);
+  const E = cyc(0, 9).concat([[1, 10], [3, 10], [7, 10], [9, 10], [5, 12], [12, 11], [12, 13], [13, 14], [14, 12]]);
+  PICTURES.push({ id: 'flower', name: 'a flower', h: 144, p, E, f: [['#f07b8e', [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]], ['#f5b83d', [1, 3, 5, 7, 9, 10]], ['#5cc47a', [12, 13, 14]]] }); }
+// Ghost
+{ const p = [[50, 4], [76, 14], [90, 40], [90, 98], [74, 84], [62, 100], [50, 86], [38, 100], [26, 84], [10, 98], [10, 40], [24, 14], [36, 44], [64, 44], [50, 64]];
+  const E = cyc(0, 11).concat([[11, 12], [1, 13], [12, 14], [14, 13], [12, 13]]);
+  PICTURES.push({ id: 'ghost', name: 'a friendly ghost', h: 104, p, E, f: [['#f4f1fb', [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]], ['#d9d2ef', [12, 14, 13]]] }); }
+// Apple
+{ const p = [[50, 22], [68, 12], [88, 24], [96, 52], [86, 86], [66, 104], [50, 98], [34, 104], [14, 86], [4, 52], [12, 24], [32, 12], [56, 4], [80, 0], [50, 60]];
+  const E = cyc(0, 11).concat([[0, 12], [12, 13], [0, 14], [14, 6]]);
+  PICTURES.push({ id: 'apple', name: 'an apple', h: 108, p, E, f: [['#e4566e', [0, 1, 2, 3, 4, 5, 6, 14]], ['#f07b8e', [0, 14, 6, 7, 8, 9, 10, 11]]] }); }
+// Potion
+{ const p = [[40, 4], [60, 4], [60, 20], [40, 20], [42, 46], [58, 46], [80, 72], [92, 100], [74, 132], [26, 132], [8, 100], [20, 72]];
+  const E = [[0, 1], [1, 2], [2, 3], [3, 0], [3, 4], [2, 5], [5, 6], [6, 7], [7, 8], [8, 9], [9, 10], [10, 11], [11, 4], [10, 7]];
+  PICTURES.push({ id: 'potion', name: 'a magic potion', h: 136, p, E, f: [['#8a5a2e', [0, 1, 2, 3]], ['#d6ecf7', [3, 2, 5, 6, 7, 10, 11, 4]], ['#8a6cd1', [10, 7, 8, 9]]] }); }
 const BOARD_ASPECT = 1.6;   // a phone's board is about this much taller than wide, so pictures keep their shape
 function picShape(pic, disc) {
   const r = Math.max(...pic.p.map(([x, y]) => Math.hypot(x - 50, y - pic.h / 2)));
@@ -624,9 +720,10 @@ const WORLDS = [
 const LAST = WORLDS.length * PER;
 const worldOf = i => Math.floor((i - 1) / PER), localOf = i => (i - 1) % PER + 1;
 const cache = {};
-// Picture knots: Forest 15 and 25, then levels 5, 15 and 25 of every other world.
-const PIC_ORDER = ['boat', 'star', 'cat', 'heart', 'fish', 'moon', 'gem', 'hat', 'house', 'tree'], SCRAMBLES = ['spiral', 'rings', 'wave', 'grid', 'ring'];
-const PIC_LEVELS = []; for (let w = 0; w < WORLDS.length; w++) for (const li of w ? [5, 15, 25] : [15, 25]) PIC_LEVELS.push(w * PER + li);
+// Picture knots: every 5th level from Forest 15 on, easiest pictures first. Flower and snowman only come up in the Daily Knot.
+const PIC_ORDER = ['letter', 'bolt', 'kite', 'bell', 'boat', 'crown', 'teacup', 'key', 'star', 'rocket', 'gem', 'leaf', 'fish', 'moon', 'cat', 'mushroom',
+  'hat', 'potion', 'owl', 'heart', 'umbrella', 'butterfly', 'sun', 'house', 'tree', 'apple', 'ghost', 'castle'], SCRAMBLES = ['spiral', 'rings', 'wave', 'grid', 'ring'];
+const PIC_LEVELS = []; for (let w = 0; w < WORLDS.length; w++) for (let li = w ? 5 : 15; li <= PER; li += 5) PIC_LEVELS.push(w * PER + li);
 const picOf = i => { const k = PIC_LEVELS.indexOf(i); return k < 0 ? null : PICTURES.find(p => p.id === PIC_ORDER[k % PIC_ORDER.length]); };
 function levelDef(i) {
   if (cache[i]) return cache[i];
@@ -981,7 +1078,7 @@ function win() {
   castSpell(stars);
   const key = G.kind === 'daily' ? null : G.idx;
   let sub = '', reward = '';
-  if (G.def.pic && !save.book.includes(G.def.pic.id)) save.book.push(G.def.pic.id);
+  G.newPic = G.def.pic && !save.book.includes(G.def.pic.id); if (G.newPic) save.book.push(G.def.pic.id);
   if (key) {
     const prev = save.stars[key] || 0; save.stars[key] = Math.max(prev, stars);
     save.best[key] = Math.min(save.best[key] || 999, m);
@@ -1015,7 +1112,7 @@ function win() {
     $('#wNext').textContent = key && localOf(key) === PER ? `On to the ${WORLDS[worldOf(key) + 1] ? WORLDS[worldOf(key) + 1].name : ''}` : 'Next level';
     $('#win').hidden = false; $('#cast').classList.add('off');
     $('#wPic').hidden = !G.def.pic; if (G.def.pic) drawPicture($('#wPic'), G.def.pic);
-    if (G.def.pic) $('#wSub').textContent = `The knot was hiding ${G.def.pic.name}! ${sub}`;
+    if (G.def.pic) $('#wSub').textContent = `The knot was hiding ${G.def.pic.name}!${G.newPic ? ' It\'s in your Spellbook now.' : ''} ${sub}`;
     for (let i = 0; i < stars; i++) { tone(784 * Math.pow(1.26, i), 0.12 + i * 0.3, 0.4, 'triangle', 0.14); tone(1568 * Math.pow(1.26, i), 0.14 + i * 0.3, 0.25, 'sine', 0.05); }
   }, G.def.pic ? 3000 : 1900);
 }
@@ -1365,8 +1462,7 @@ function renderMenu() {
 function renderDaily() {
   const k = todayKey(), D = save.daily, done = D.last === k, tw = dailyTwist();
   const streak = done || D.last === yesterdayKey() ? D.streak : 0;
-  $('#dNum').textContent = '#' + dailyNo();
-  $('#dailySub').textContent = done ? `Solved! It was ${dailyPic().name}.` : `${tw.name} · ${tw.sub}`;
+    $('#dailySub').textContent = done ? `#${dailyNo()} solved! It was ${dailyPic().name}.` : `#${dailyNo()} · ${tw.name} · ${tw.sub}`;
   $('#dailyGo').textContent = done ? 'Replay' : 'Play';
   const cnv = $('#dPic'), c = cnv.getContext('2d');
   if (done) drawPicture(cnv, dailyPic());
@@ -1419,6 +1515,19 @@ function renderShop(msg) {
   const r = $('#xRestore'); if (r) r.onclick = async () => { await money.restore(); renderShop('Purchases restored.'); };
 }
 $('#skins').addEventListener('click', e => { const b = e.target.closest('[data-eq]'); if (b && !b.disabled) { save.skin = b.dataset.eq; persist(); renderShop(); } });
+// Spellbook: every picture the player has revealed, and where to find the rest
+function renderBook() {
+  const found = new Set(save.book); PIC_LEVELS.forEach(i => { if (save.stars[i]) found.add(picOf(i).id); });
+  $('#bookSub').textContent = `${found.size} of ${PICTURES.length} pictures found`;
+  $('#bookGrid').innerHTML = PICTURES.map(p => {
+    const lv = PIC_LEVELS.find(i => picOf(i) === p), where = lv ? `${WORLDS[worldOf(lv)].name} ${localOf(lv)}` : 'Daily Knot';
+    return found.has(p.id) ? `<div><canvas data-pic="${p.id}" width="192" height="192" aria-hidden="true"></canvas><b>${p.name.replace(/^(a|an|the) /, '')}</b></div>`
+      : `<div><span class="q" aria-hidden="true">?</span><b>Not found yet</b><small>${where}</small></div>`;
+  }).join('');
+  document.querySelectorAll('#bookGrid canvas').forEach(c => drawPicture(c, PICTURES.find(p => p.id === c.dataset.pic)));
+}
+$('#mBook').onclick = () => { renderBook(); $('#book').hidden = false; };
+$('#bookClose').onclick = () => { $('#book').hidden = true; };
 $('#mShop').onclick = () => { renderShop(); $('#shop').hidden = false; };
 $('#shopClose').onclick = () => { $('#shop').hidden = true; renderMenu(); };
 
@@ -1427,7 +1536,7 @@ let toastT = 0;
 function toast(t) { const el = $('#toast'); el.textContent = t; el.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => el.hidden = true, 2200); }
 
 // hooks for the clip recorder (tools/record-clips.js); absent in normal play
-if (window.__kwCapture) window.__kwCapture.api = { startPuzzle, levelDef, toPx, tryMove, bestMove, crossings, incidence, songStep, musicBus, toneAt, SONGS, WORLDS, PER, get G() { return G; } };
+if (window.__kwCapture) window.__kwCapture.api = { startPuzzle, levelDef, genLevel, picShape, PICTURES, DAILY_TWISTS, SCRAMBLES, toPx, tryMove, bestMove, crossings, incidence, songStep, musicBus, toneAt, SONGS, WORLDS, PER, get G() { return G; } };
 renderMenu(); show('menu'); money.init();
 })();
 </script>
