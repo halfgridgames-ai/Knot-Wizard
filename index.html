@@ -52,7 +52,7 @@ h1 { font-family: var(--display); font-weight: 800; font-size: clamp(40px, 11vw,
 .world .wst { display: inline-flex; align-items: center; gap: 3px; color: var(--honey); }
 .world .wst svg { width: 11px; height: 11px; }
 .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
-.lv { aspect-ratio: 1; max-width: 100%; border: 0; border-radius: 14px; background: var(--forest-2); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-family: var(--display); font-weight: 800; font-size: 21px; box-shadow: 0 3px 0 rgba(0,0,0,0.3); }
+.lv { position: relative; aspect-ratio: 1; max-width: 100%; border: 0; border-radius: 14px; background: var(--forest-2); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-family: var(--display); font-weight: 800; font-size: 21px; box-shadow: 0 3px 0 rgba(0,0,0,0.3); }
 .lv.done { background: var(--forest-3); }
 .lv.next { background: var(--honey); color: #3a2400; box-shadow: 0 3px 0 var(--honey-deep); }
 .lv:disabled { opacity: 0.42; cursor: default; box-shadow: none; }
@@ -106,7 +106,7 @@ body, .icon-btn, .tool, .moves, .lv, .chip { transition: background-color .4s; }
 .stars svg:nth-child(2).on { animation-delay: .3s; } .stars svg:nth-child(3).on { animation-delay: .6s; }
 /* win celebration: the wizard rises over the board and casts the finishing spell */
 #cast { position: absolute; inset: 0; pointer-events: none; z-index: 2; overflow: hidden; }
-#cast .bigwiz { position: absolute; left: 50%; bottom: -4px; width: min(46%, 190px); aspect-ratio: 120 / 160; margin-left: calc(min(46%, 190px) / -2); transform: translateY(105%); }
+#cast .bigwiz { position: absolute; right: -3%; bottom: -4px; width: min(40%, 170px); aspect-ratio: 120 / 160; transform: translateY(105%); }
 #cast.on .bigwiz { animation: wizrise .5s cubic-bezier(.25,1.5,.5,1) forwards, wizbob 1.6s ease-in-out .5s infinite; }
 #cast .arm { transform-origin: 82px 104px; transform: rotate(15deg); }
 #cast.on .arm { animation: wandcast .55s cubic-bezier(.3,1.4,.5,1) .38s forwards; }
@@ -115,11 +115,15 @@ body, .icon-btn, .tool, .moves, .lv, .chip { transition: background-color .4s; }
 #cast .word i { display: inline-block; font-style: normal; opacity: 0; }
 #cast.on .word i { animation: letterpop .4s cubic-bezier(.2,1.8,.4,1) forwards; }
 #cast.off { opacity: 0; transition: opacity .3s; }
+#cast .reveal { position: absolute; left: 0; right: 0; top: calc(11% + clamp(46px, 14vw, 66px)); text-align: center; font-family: var(--display); font-weight: 800; font-size: clamp(20px, 6vw, 28px); color: #fff; text-shadow: 0 2px 0 rgba(0,0,0,.35), 0 0 14px rgba(0,0,0,.35); opacity: 0; }
+#cast.shown .reveal { animation: letterpop .5s cubic-bezier(.2,1.8,.4,1) forwards; }
+.lv.pic::after { content: '?'; position: absolute; top: 3px; right: 6px; font-size: 13px; color: var(--honey); }
 @keyframes wizrise { to { transform: translateY(0); } }
 @keyframes wizbob { 0%, 100% { translate: 0 0; } 50% { translate: 0 -6px; } }
 @keyframes wandcast { 0% { transform: rotate(15deg); } 55% { transform: rotate(-25deg); } 100% { transform: rotate(-12deg); } }
 @keyframes letterpop { from { opacity: 0; transform: translateY(24px) scale(.3) rotate(-20deg); } to { opacity: 1; transform: none; } }
 #win .card { overflow: visible; max-height: none; margin-top: 56px; }
+#wPic { width: 120px; height: 100px; margin: -6px auto -4px; animation: starpop .5s cubic-bezier(.2,1.6,.4,1) both; }
 .card .peek { width: 74px; height: 86px; margin: -70px auto -10px; animation: peek .5s cubic-bezier(.25,1.6,.5,1) both, wizbob 1.6s ease-in-out .5s infinite; }
 @keyframes peek { from { transform: translateY(30px) scale(.6); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { #cast.on .bigwiz, #cast.on .arm, #cast.on .word i, .card .peek { animation-duration: .01s !important; animation-delay: 0s !important; } }
@@ -309,7 +313,7 @@ HGSplash.show();
       <svg id="wiz" aria-hidden="true"><use href="#wizard"/></svg>
     </header>
     <div id="boardWrap"><canvas id="board" aria-label="Puzzle board: drag the wooden pins"></canvas>
-      <div id="cast" hidden><div class="word" aria-hidden="true"></div><svg class="bigwiz" viewBox="0 0 120 160" aria-hidden="true">
+      <div id="cast" hidden><div class="word" aria-hidden="true"></div><div class="reveal"></div><svg class="bigwiz" viewBox="0 0 120 160" aria-hidden="true">
       <path d="M38 84h44l20 72H18z" fill="#6a4fc4"/><path d="M60 84h22l20 72H70z" fill="#432f8a"/>
       <path d="M18 156h84l-3-10H21z" fill="#f5b83d" opacity=".9"/>
       <path d="M30 128l2.4 5 5.4.6-4 3.7 1.1 5.3L30 140l-4.9 2.6 1.1-5.3-4-3.7 5.4-.6z" fill="#f5b83d"/><circle cx="88" cy="120" r="2.2" fill="#f5b83d"/><circle cx="46" cy="110" r="1.6" fill="#f5b83d"/>
@@ -334,6 +338,7 @@ HGSplash.show();
   <div class="card">
     <svg class="peek" viewBox="0 0 48 56" aria-hidden="true"><use href="#wizard"/></svg>
     <h2 id="wTitle">Untangled!</h2>
+    <canvas id="wPic" width="240" height="200" hidden aria-hidden="true"></canvas>
     <div class="stars" id="wStars"></div>
     <div class="stat"><span><small>Moves</small><b id="wMoves">0</b></span><span><small>Par</small><b id="wPar">0</b></span><span><small>Best</small><b id="wBest">0</b></span></div>
     <p id="wSub"></p>
@@ -453,13 +458,16 @@ function bestMove(def, P, E, inc) {
 /* ---------- level generation ---------- */
 // Build a planar graph (Euclidean MST plus shortest non-crossing extras), then scramble the pins onto a ring.
 // Locked pins stay where they belong; tied pins keep their offset from each other, so every level stays solvable.
-// o: { n, e: rope target, cross: min crossings, locks, links, stretch, disc }
+// o: { n, e: rope target, cross: min crossings, locks, links, stretch, disc, shape: { pts, E } for a picture, scramble }
 function genLevel(seed, o) {
+  if (o.shape) o = { ...o, n: o.shape.pts.length, e: o.shape.E.length };
   const n = o.n, locks = o.locks || 0, links = o.links || 0, nStretch = o.stretch || 0, special = locks || links;
   const inside = p => !o.disc || dist(p, CEN) <= 0.42;
   for (let attempt = 0; attempt < 160; attempt++) {
     const R = rng(seed + attempt * 7717);
-    const pts = []; const md = 0.62 / Math.sqrt(n) * (o.disc ? 0.88 : 1); let tries = 0;
+    let pts = [], E = [];
+    if (o.shape) { pts = o.shape.pts.map(p => ({ ...p })); E = o.shape.E.map(e => e.slice()); } else {
+    const md = 0.62 / Math.sqrt(n) * (o.disc ? 0.88 : 1); let tries = 0;
     while (pts.length < n && tries < 5000) { tries++; const p = { x: 0.08 + R() * 0.84, y: 0.08 + R() * 0.84 }; if (inside(p) && pts.every(q => dist(p, q) > md)) pts.push(p); }
     if (pts.length < n) continue;
     const cand = [];
@@ -467,7 +475,7 @@ function genLevel(seed, o) {
     cand.sort((a, b) => a[2] - b[2]);
     const clear = (i, j) => pts.every((p, k) => k === i || k === j || psd(p, pts[i], pts[j]) > 0.045);
     const parent = pts.map((_, i) => i); const find = i => parent[i] === i ? i : (parent[i] = find(parent[i]));
-    const E = []; let bad = false;
+    let bad = false;
     for (const [i, j] of cand) { const a = find(i), b = find(j); if (a === b) continue; if (!clear(i, j)) { bad = true; break; } parent[a] = b; E.push([i, j]); }
     if (bad) continue;
     for (const [i, j] of cand) {
@@ -478,6 +486,7 @@ function genLevel(seed, o) {
       E.push([i, j]);
     }
     if (E.length < o.e - 1) continue;
+    }
     // roles: locked pins, then tied pairs (leader i, follower j)
     const R3 = rng(seed * 17 + attempt), locked = pts.map(() => false), link = pts.map(() => -1), follower = pts.map(() => false);
     const order = pts.map((_, i) => i).sort(() => R3() - 0.5);
@@ -495,9 +504,10 @@ function genLevel(seed, o) {
       const perm = movers.map((_, i) => i); for (let i = perm.length - 1; i > 0; i--) { const j = Math.floor(R2() * (i + 1)); [perm[i], perm[j]] = [perm[j], perm[i]]; }
       const off = R2() * Math.PI * 2;
       const start = pts.map(p => ({ ...p }));
-      movers.forEach((k, t) => { const a = off + perm[t] / movers.length * Math.PI * 2; start[k] = { x: 0.5 + 0.4 * Math.cos(a), y: 0.5 + 0.4 * Math.sin(a) }; });
+      if (o.scramble && o.scramble !== 'ring') movers.forEach((k, t) => start[k] = scramblePt(o.scramble, perm[t], movers.length, off, o.disc));
+      else movers.forEach((k, t) => { const a = off + perm[t] / movers.length * Math.PI * 2; start[k] = { x: 0.5 + 0.4 * Math.cos(a), y: 0.5 + 0.4 * Math.sin(a) }; });
       link.forEach((j, i) => { if (j >= 0 && follower[j]) start[j] = { x: start[i].x + pts[j].x - pts[i].x, y: start[i].y + pts[j].y - pts[i].y }; });
-      if (special) {
+      if (special || o.scramble) {
         const def0 = { disc: o.disc }; let ok = true;
         for (let i = 0; i < n && ok; i++) { if (dist(fitArea(def0, start[i]), start[i]) > 1e-6 || start[i].x < 0.03 || start[i].x > 0.97 || start[i].y < 0.03 || start[i].y > 0.97) ok = false; for (let j = i + 1; j < n && ok; j++) if (dist(start[i], start[j]) < 0.075) ok = false; }
         if (!ok) continue;
@@ -510,7 +520,7 @@ function genLevel(seed, o) {
           const pick = E.map((e, i) => i).filter(i => !(locked[E[i][0]] && locked[E[i][1]]) && link[E[i][0]] !== E[i][1]).sort((a, b) => reach[a] - reach[b]).slice(0, nStretch * 2).sort(() => R2() - 0.5).slice(0, nStretch);
           maxLen = E.map((e, i) => pick.includes(i) ? reach[i] * 1.06 + 0.03 : 0);
         }
-        const def = { start, E, n, solved: pts, locked: special ? locked : null, link: links ? link : null, maxLen, disc: !!o.disc };
+        const def = { start, E, n, solved: pts, locked: special ? locked : null, link: links ? link : null, maxLen, disc: !!o.disc, pic: o.pic || null };
         // par: greedy single-pin solver
         const P = start.map(p => ({ ...p })), inc = incidence(n, E); let steps = 0, m;
         while (crossings(P, E).length && steps < n * 3 && (m = bestMove(def, P, E, inc))) { tryMove(def, P, m.k, m).forEach(([g, p]) => P[g] = p); steps++; }
@@ -522,6 +532,70 @@ function genLevel(seed, o) {
     }
   }
   return null;
+}
+
+// Other ways to scatter the pins than a plain ring. t-th of m pins, a: a random turn.
+function scramblePt(kind, t, m, a, disc) {
+  const f = t / m; let p;
+  if (kind === 'spiral') { const r = 0.12 + 0.3 * f, th = a + f * Math.PI * 4.2; p = { x: 0.5 + r * Math.cos(th), y: 0.5 + r * Math.sin(th) }; }
+  else if (kind === 'rings') { const inner = t % 2, k = Math.floor(t / 2), cnt = Math.ceil((m - inner) / 2), th = a + (k + inner * 0.5) / cnt * Math.PI * 2, r = inner ? 0.2 : 0.41; p = { x: 0.5 + r * Math.cos(th), y: 0.5 + r * Math.sin(th) }; }
+  else if (kind === 'grid') { const cols = Math.ceil(Math.sqrt(m)), rows = Math.ceil(m / cols), c = t % cols, r = Math.floor(t / cols); p = { x: 0.2 + 0.6 * (cols > 1 ? c / (cols - 1) : 0.5), y: 0.18 + 0.64 * (rows > 1 ? r / (rows - 1) : 0.5) }; }
+  else { const th = a + f * Math.PI * 2; p = { x: 0.5 + 0.38 * Math.cos(th) * Math.cos(th * 0.5), y: 0.5 + 0.42 * Math.sin(th) }; }   // 'wave': a figure of eight
+  if (disc) { const d = dist(p, CEN); if (d > 0.41) p = { x: 0.5 + (p.x - 0.5) * 0.41 / d, y: 0.5 + (p.y - 0.5) * 0.41 / d }; }
+  return p;
+}
+
+/* ---------- picture knots ---------- */
+// Some knots untangle into a picture. Drawn on a grid 100 wide and h tall, in the same units both ways;
+// f lists the coloured faces shown when it's solved.
+const ring = (cx, cy, rx, ry, n, a0 = -90) => Array.from({ length: n }, (_, i) => { const a = (a0 + i * 360 / n) * Math.PI / 180; return [Math.round(cx + rx * Math.cos(a)), Math.round(cy + ry * Math.sin(a))]; });
+const cyc = (a, b) => { const e = []; for (let i = a; i < b; i++) e.push([i, i + 1]); e.push([b, a]); return e; };
+const PICTURES = [];
+// Star: 5 points, 5 inner corners, a centre
+{ const p = []; for (let i = 0; i < 10; i++) { const a = (-90 + i * 36) * Math.PI / 180, r = i % 2 ? 20 : 48; p.push([Math.round(50 + r * Math.cos(a)), Math.round(54 + r * Math.sin(a))]); } p.push([50, 54]);
+  const E = cyc(0, 9); [1, 3, 5, 7, 9].forEach(i => E.push([i, 10]));
+  PICTURES.push({ id: 'star', name: 'a shooting star', h: 104, p, E, f: [['#f5b83d', [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]], ['#ffd979', [1, 10, 9, 0]], ['#ffd979', [5, 10, 3, 4]], ['#e39b2c', [7, 10, 5, 6]]] }); }
+// Heart
+{ const p = [[50, 26], [36, 10], [18, 12], [6, 30], [8, 50], [24, 72], [50, 96], [76, 72], [92, 50], [94, 30], [82, 12], [64, 10], [50, 54]];
+  const E = cyc(0, 11).concat([[0, 12], [4, 12], [8, 12], [6, 12]]);
+  PICTURES.push({ id: 'heart', name: 'a heart', h: 104, p, E, f: [['#e4566e', [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]], ['#f07b8e', [0, 1, 2, 3, 4, 12]], ['#c63f58', [12, 6, 7, 8]]] }); }
+// House with a door and chimney
+{ const p = [[10, 128], [90, 128], [90, 72], [10, 72], [50, 10], [40, 128], [40, 98], [60, 98], [60, 128], [66, 35], [66, 10], [80, 10], [80, 57]];
+  const E = [[0, 5], [5, 6], [6, 7], [7, 8], [8, 1], [1, 2], [0, 3], [3, 2], [3, 4], [4, 9], [9, 10], [10, 11], [11, 12], [12, 2], [9, 12]];
+  PICTURES.push({ id: 'house', name: 'a cosy cottage', h: 136, p, E, f: [['#f6ecd2', [0, 5, 6, 7, 8, 1, 2, 3]], ['#d4553f', [3, 4, 9, 12, 2]], ['#9b5a2c', [5, 6, 7, 8]], ['#8d93a3', [9, 10, 11, 12]]] }); }
+// Fish
+{ const p = [[8, 50], [24, 30], [46, 22], [66, 30], [78, 50], [66, 70], [46, 78], [24, 70], [94, 30], [94, 70], [44, 50], [24, 50]];
+  const E = cyc(0, 7).concat([[4, 8], [8, 9], [9, 4], [2, 10], [10, 6], [1, 11], [11, 7]]);
+  PICTURES.push({ id: 'fish', name: 'a little fish', h: 100, p, E, f: [['#f08a3c', [0, 1, 2, 3, 4, 5, 6, 7]], ['#e06a2a', [4, 8, 9]], ['#ffb36b', [0, 1, 11, 7]], ['#f7a35a', [2, 3, 4, 5, 6, 10]]] }); }
+// Wizard hat
+{ const p = [[4, 112], [26, 124], [74, 124], [96, 112], [74, 100], [26, 100], [32, 84], [70, 84], [40, 54], [66, 50], [60, 24], [76, 8]];
+  const E = [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 0], [5, 6], [6, 7], [7, 4], [6, 8], [8, 10], [10, 11], [11, 9], [9, 7], [8, 9], [10, 9]];
+  PICTURES.push({ id: 'hat', name: 'a wizard hat', h: 132, p, E, f: [['#6a4fc4', [0, 1, 2, 3, 4, 5]], ['#6a4fc4', [6, 8, 10, 11, 9, 7]], ['#f5b83d', [5, 6, 7, 4]], ['#432f8a', [10, 11, 9]]] }); }
+// Pine tree
+{ const p = [[50, 4], [24, 48], [38, 48], [14, 90], [32, 90], [6, 128], [42, 128], [42, 148], [58, 148], [58, 128], [94, 128], [68, 90], [86, 90], [62, 48], [76, 48]];
+  const E = cyc(0, 14).concat([[2, 13], [4, 11], [6, 9]]);
+  PICTURES.push({ id: 'tree', name: 'a pine tree', h: 152, p, E, f: [['#3f8f56', [0, 1, 2, 13, 14]], ['#357d4a', [2, 3, 4, 11, 12, 13]], ['#2c6b3e', [4, 5, 6, 9, 10, 11]], ['#8a5a2e', [6, 7, 8, 9]]] }); }
+// Sailboat
+{ const p = [[46, 6], [46, 88], [10, 82], [84, 88], [62, 64], [4, 104], [96, 104], [20, 128], [80, 128], [46, 104]];
+  const E = [[0, 1], [0, 2], [2, 1], [0, 4], [4, 3], [3, 1], [5, 9], [9, 6], [6, 8], [8, 7], [7, 5], [1, 9]];
+  PICTURES.push({ id: 'boat', name: 'a sailboat', h: 136, p, E, f: [['#f6ecd2', [0, 2, 1]], ['#e4566e', [0, 4, 3, 1]], ['#9b5a2c', [5, 9, 6, 8, 7]]] }); }
+// Cat face: the eyes and nose are pins
+{ const p = [[12, 6], [36, 30], [64, 30], [88, 6], [96, 58], [78, 92], [50, 102], [22, 92], [4, 58], [32, 54], [68, 54], [50, 72]];
+  const E = cyc(0, 8).concat([[1, 9], [9, 11], [11, 10], [10, 2], [11, 6]]);
+  PICTURES.push({ id: 'cat', name: 'a cat', h: 108, p, E, f: [['#e39b2c', [0, 1, 2, 3, 4, 5, 6, 7, 8]], ['#f2b65a', [1, 9, 11, 10, 2]]] }); }
+// Crescent moon
+{ const p = [[70, 10], [40, 16], [16, 36], [6, 62], [16, 88], [40, 106], [70, 112], [56, 92], [40, 76], [34, 60], [40, 42], [56, 28]];
+  const E = cyc(0, 11).concat([[2, 10], [3, 9], [4, 8]]);
+  PICTURES.push({ id: 'moon', name: 'a crescent moon', h: 122, p, E, f: [['#ffe08a', [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]], ['#f5c84d', [2, 3, 4, 8, 9, 10]]] }); }
+// Gem
+{ const p = [[30, 14], [50, 14], [70, 14], [8, 40], [30, 40], [50, 40], [70, 40], [92, 40], [50, 100]];
+  const E = [[0, 1], [1, 2], [0, 3], [2, 7], [3, 4], [4, 5], [5, 6], [6, 7], [0, 4], [1, 4], [1, 5], [1, 6], [2, 6], [3, 8], [4, 8], [5, 8], [6, 8], [7, 8]];
+  PICTURES.push({ id: 'gem', name: 'a magic gem', h: 110, p, E, f: [['#5bc0eb', [0, 1, 4]], ['#8fd8f5', [1, 5, 4]], ['#5bc0eb', [1, 6, 5]], ['#8fd8f5', [1, 2, 6]], ['#3a9fd0', [0, 4, 3]], ['#3a9fd0', [2, 7, 6]], ['#2f86b8', [3, 4, 8]], ['#5bc0eb', [4, 5, 8]], ['#8fd8f5', [5, 6, 8]], ['#2f86b8', [6, 7, 8]]] }); }
+const BOARD_ASPECT = 1.6;   // a phone's board is about this much taller than wide, so pictures keep their shape
+function picShape(pic, disc) {
+  const r = Math.max(...pic.p.map(([x, y]) => Math.hypot(x - 50, y - pic.h / 2)));
+  const sx = disc ? 0.4 / r : 0.0084, sy = disc ? sx : sx / BOARD_ASPECT;
+  return { pts: pic.p.map(([x, y]) => ({ x: 0.5 + (x - 50) * sx, y: 0.5 + (y - pic.h / 2) * sy })), E: pic.E };
 }
 
 /* ---------- worlds ---------- */
@@ -542,9 +616,22 @@ const WORLDS = [
 const LAST = WORLDS.length * PER;
 const worldOf = i => Math.floor((i - 1) / PER), localOf = i => (i - 1) % PER + 1;
 const cache = {};
+// Picture knots: Forest 15 and 25, then levels 5, 15 and 25 of every other world.
+const PIC_ORDER = ['boat', 'star', 'cat', 'heart', 'fish', 'moon', 'gem', 'hat', 'house', 'tree'], SCRAMBLES = ['spiral', 'rings', 'wave', 'grid', 'ring'];
+const PIC_LEVELS = []; for (let w = 0; w < WORLDS.length; w++) for (const li of w ? [5, 15, 25] : [15, 25]) PIC_LEVELS.push(w * PER + li);
+const picOf = i => { const k = PIC_LEVELS.indexOf(i); return k < 0 ? null : PICTURES.find(p => p.id === PIC_ORDER[k % PIC_ORDER.length]); };
 function levelDef(i) {
   if (cache[i]) return cache[i];
   const w = worldOf(i), Wd = WORLDS[w], li = localOf(i), t = (li - 1) / (PER - 1);
+  const pic = picOf(i);
+  if (pic) {
+    const late = clamp((t - 0.3) / 0.7, 0, 1), lerp = (r, x = t) => r ? Math.round(r[0] + (r[1] - r[0]) * x) : 0, k = PIC_LEVELS.indexOf(i);
+    const shape = picShape(pic, !!Wd.disc), n = shape.pts.length;
+    const def = genLevel(424243 + i * 7919, { shape, pic, scramble: SCRAMBLES[k % SCRAMBLES.length], cross: Math.round(n * (0.5 + 0.6 * t + 0.1 * w)),
+      locks: w === 1 ? lerp(Wd.locks) : lerp(Wd.locks, late), stretch: w === 2 ? lerp(Wd.stretch) : lerp(Wd.stretch, late), links: w === 3 ? lerp(Wd.links) : lerp(Wd.links, late), disc: !!Wd.disc });
+    if (def) def.spin = Wd.spin ? (Wd.spin[0] + (Wd.spin[1] - Wd.spin[0]) * t) * (li % 2 ? 1 : -1) : 0;
+    return (cache[i] = def);
+  }
   if (w === 0) {   // the original 30 Forest levels, unchanged
     const n = Math.round(4 + t * 8);
     return (cache[i] = genLevel(9137 + i * 7919, { n, e: Math.min(3 * n - 6, Math.round(n * (1.25 + 0.45 * t))), cross: Math.max(1, Math.round(n * (0.3 + 0.9 * t))) }));
@@ -764,7 +851,7 @@ function startPuzzle(kind, idx) {
   setWizard(false);
   updateHud();
   const intro = kind === 'level' && localOf(idx) <= 2 && WORLDS[w].intro;
-  if (intro) { say(intro, 3200); if (localOf(idx) === 1) toast(intro); } else say(`Untie ${G.cross} knot${G.cross === 1 ? '' : 's'}`);
+  if (intro) { say(intro, 3200); if (localOf(idx) === 1) toast(intro); } else if (def.pic) say('A picture is hiding in this knot', 3200); else say(`Untie ${G.cross} knot${G.cross === 1 ? '' : 's'}`);
   show('game'); resize();
   if (!running) { running = true; requestAnimationFrame(loop); }
 }
@@ -889,8 +976,10 @@ function win() {
     $('#wNext').hidden = !key || key >= LAST;
     $('#wNext').textContent = key && localOf(key) === PER ? `On to the ${WORLDS[worldOf(key) + 1] ? WORLDS[worldOf(key) + 1].name : ''}` : 'Next level';
     $('#win').hidden = false; $('#cast').classList.add('off');
+    $('#wPic').hidden = !G.def.pic; if (G.def.pic) drawPicture($('#wPic'), G.def.pic);
+    if (G.def.pic) $('#wSub').textContent = `The knot was hiding ${G.def.pic.name}! ${sub}`;
     for (let i = 0; i < stars; i++) { tone(784 * Math.pow(1.26, i), 0.12 + i * 0.3, 0.4, 'triangle', 0.14); tone(1568 * Math.pow(1.26, i), 0.14 + i * 0.3, 0.25, 'sine', 0.05); }
-  }, 1900);
+  }, G.def.pic ? 3000 : 1900);
 }
 // the wizard rises over the board, flicks his wand and the spell bursts from its tip
 function castSpell(stars) {
@@ -907,8 +996,22 @@ function castSpell(stars) {
     const x = wz.left - r.left + k * (82 + 31 * Math.cos(an) + 67 * Math.sin(an)), y = wz.top - r.top + k * (104 + 31 * Math.sin(an) - 67 * Math.cos(an));
     particles.push({ x, y, vx: 0, vy: 0, life: 1, ring: true, col: '#f5b83d' });
     for (let k = 0; k < 46; k++) { const a = Math.random() * 7, v = 160 + Math.random() * 420; particles.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 120, life: 1 + Math.random() * 0.4, star: 4 + Math.random() * 5, col: k % 3 ? '#f5b83d' : '#fff6d8' }); }
+    if (G.def.pic) {   // the spell pulls the pins into the hidden picture, then colours it in
+      G.glide = { from: G.P.map(p => ({ ...p })), t0: performance.now() };
+      el.querySelector('.reveal').textContent = `It's ${G.def.pic.name}!`;
+      setTimeout(() => { if (G === g) { el.classList.add('shown'); [659, 880, 1175].forEach((f, i) => tone(f, i * 0.08, 0.5, 'sine', 0.1)); } }, 800);
+    }
     G.P.forEach((p, i) => { const q = toPx(p); for (let k = 0; k < 6; k++) particles.push({ x: q.x, y: q.y, vx: (Math.random() - 0.5) * 300, vy: -Math.random() * 340 - 60, life: 1, star: k % 2 ? 4 : 0, col: ['#f5b83d', '#ffffff', ROPES[(i + k) % 6]][k % 3] }); });
   }, 680);
+}
+// a revealed picture as a little coloured drawing, for the win card and the collection
+function drawPicture(cnv, pic) {
+  const c = cnv.getContext('2d'), W2 = cnv.width, H2 = cnv.height, s = Math.min((W2 - 24) / 100, (H2 - 24) / pic.h);
+  const P = pic.p.map(([x, y]) => ({ x: W2 / 2 + (x - 50) * s, y: H2 / 2 + (y - pic.h / 2) * s }));
+  c.clearRect(0, 0, W2, H2);
+  pic.f.forEach(([col, face]) => { c.fillStyle = col; c.beginPath(); face.forEach((i, j) => j ? c.lineTo(P[i].x, P[i].y) : c.moveTo(P[i].x, P[i].y)); c.closePath(); c.fill(); });
+  pic.E.forEach(([a, b], i) => drawRope(c, P[a], P[b], i, 4, 'classic', '', 0));
+  P.forEach(q => { c.fillStyle = '#c08347'; c.strokeStyle = '#5e3818'; c.lineWidth = 1.5; c.beginPath(); c.arc(q.x, q.y, 4.5, 0, 7); c.fill(); c.stroke(); });
 }
 function hideCast() { const el = $('#cast'); el.hidden = true; el.className = ''; }
 function maybeInterstitial(then) { const idx = G && G.kind === 'level' ? G.idx : 0; money.interstitial(idx).then(then); }
@@ -963,7 +1066,17 @@ function draw(time, dt) {
   const c = ctx; c.setTransform(DPR, 0, 0, DPR, 0, 0); c.clearRect(0, 0, W, H);
   drawFelt(c, time);
   if (!G) return drawParticles(c, dt);
-  const def = G.def, P = G.P.map(toPx), cr = crossings(G.P, G.E), bad = new Set(); cr.forEach(([i, j]) => { bad.add(i); bad.add(j); });
+  if (G.glide) {
+    const k = clamp((performance.now() - G.glide.t0) / 700, 0, 1), e = k * k * (3 - 2 * k);
+    G.P = G.glide.from.map((p, i) => ({ x: p.x + (G.def.solved[i].x - p.x) * e, y: p.y + (G.def.solved[i].y - p.y) * e }));
+    if (k >= 1) { G.glide = null; G.fillAt = performance.now(); }
+  }
+  const def = G.def, P = G.P.map(toPx), cr = G.solved ? [] : crossings(G.P, G.E), bad = new Set(); cr.forEach(([i, j]) => { bad.add(i); bad.add(j); });
+  if (def.pic && G.fillAt) {
+    c.globalAlpha = clamp((performance.now() - G.fillAt) / 450, 0, 1) * 0.92;
+    def.pic.f.forEach(([col, face]) => { c.fillStyle = col; c.beginPath(); face.forEach((i, j) => j ? c.lineTo(P[i].x, P[i].y) : c.moveTo(P[i].x, P[i].y)); c.closePath(); c.fill(); });
+    c.globalAlpha = 1;
+  }
   const glow = G.solved;
   const w = clamp(pinR * 0.55, 6, 10);
   // tied pins: a silver thread (not a rope, it never counts as a crossing)
@@ -1180,7 +1293,7 @@ function renderMenu() {
   for (let li = 1; li <= PER; li++) {
     const i = menuWorld * PER + li, st = save.stars[i] || 0, open = isOpen(i);
     const stars = [0, 1, 2].map(k => `<svg style="color:${k < st ? 'var(--honey)' : 'rgba(255,255,255,0.18)'}"><use href="#i-star"/></svg>`).join('');
-    h += open ? `<button class="lv ${st ? 'done' : ''} ${i === next ? 'next' : ''}" data-l="${i}" aria-label="${WORLDS[menuWorld].name} level ${li}, ${st} stars">${li}<span class="st">${stars}</span></button>`
+    h += open ? `<button class="lv ${st ? 'done' : ''} ${i === next ? 'next' : ''} ${PIC_LEVELS.includes(i) ? 'pic' : ''}" data-l="${i}" aria-label="${WORLDS[menuWorld].name} level ${li}, ${st} stars">${li}<span class="st">${stars}</span></button>`
               : `<button class="lv" disabled aria-label="${WORLDS[menuWorld].name} level ${li}, locked"><svg class="lock"><use href="#i-lock"/></svg></button>`;
   }
   $('#grid').innerHTML = h;
