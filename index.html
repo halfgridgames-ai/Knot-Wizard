@@ -39,7 +39,20 @@ h1 { font-family: var(--display); font-weight: 800; font-size: clamp(40px, 11vw,
 .wallet { display: flex; gap: 8px; flex-wrap: wrap; }
 .chip { display: inline-flex; align-items: center; gap: 6px; background: var(--forest-2); border: 1px solid var(--line); border-radius: 99px; padding: 6px 12px; font-weight: 800; font-variant-numeric: tabular-nums; }
 .chip svg { width: 16px; height: 16px; }
-.daily { display: flex; align-items: center; gap: 14px; background: linear-gradient(150deg, var(--plum), var(--plum-deep)); border-radius: 20px; padding: 14px 16px; box-shadow: 0 5px 0 #2c1f5c; }
+.daily { display: flex; flex-direction: column; gap: 12px; background: linear-gradient(150deg, var(--plum), var(--plum-deep)); border-radius: 20px; padding: 14px 16px; box-shadow: 0 5px 0 #2c1f5c; }
+.daily .dtop { display: flex; align-items: center; gap: 12px; }
+.daily canvas { width: 58px; height: 58px; flex: none; border-radius: 14px; background: rgba(255,255,255,0.12); }
+.daily .info b { font-size: 20px; white-space: nowrap; }
+.daily .dnum { color: var(--honey); font-size: 15px; }
+.week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+.week span { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 11px; font-weight: 800; color: #cfc3f5; }
+.week i { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: rgba(0,0,0,0.22); font-style: normal; font-size: 14px; }
+.week .done i { background: var(--honey); color: #3a2400; }
+.week .today i { box-shadow: 0 0 0 2.5px #fff; }
+.week .gift i { background: rgba(245,184,61,0.22); }
+.dfoot { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 13px; font-weight: 800; color: #e6defc; }
+.dfoot .flame { color: var(--honey); white-space: nowrap; }
+.reward { text-align: center; font-weight: 800; color: var(--honey); }
 .daily .info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .daily b { font-family: var(--display); font-size: 22px; font-weight: 800; }
 .daily small { color: #d9cffa; font-weight: 700; font-size: 13px; }
@@ -285,8 +298,13 @@ HGSplash.show();
         <span class="chip"><svg style="color:#c9b8ff"><use href="#i-wand"/></svg><span id="mHints">3</span> hints</span>
       </div>
       <div class="daily">
-        <div class="info"><b>Daily Knot</b><small id="dailySub"></small></div>
-        <button class="go plum" id="dailyGo">Play</button>
+        <div class="dtop">
+          <canvas id="dPic" width="116" height="116" aria-hidden="true"></canvas>
+          <div class="info"><b>Daily Knot <span class="dnum" id="dNum"></span></b><small id="dailySub"></small></div>
+          <button class="go plum" id="dailyGo">Play</button>
+        </div>
+        <div class="week" id="dWeek"></div>
+        <div class="dfoot"><span id="dNext"></span><span class="flame" id="dStreak"></span></div>
       </div>
       <div>
         <div class="label">Worlds</div>
@@ -342,7 +360,8 @@ HGSplash.show();
     <div class="stars" id="wStars"></div>
     <div class="stat"><span><small>Moves</small><b id="wMoves">0</b></span><span><small>Par</small><b id="wPar">0</b></span><span><small>Best</small><b id="wBest">0</b></span></div>
     <p id="wSub"></p>
-    <div class="row"><button class="go" id="wNext">Next level</button><button class="ghost" id="wRetry">Replay</button><button class="ghost" id="wMenu">Levels</button></div>
+    <p class="reward" id="wReward" hidden></p>
+    <div class="row"><button class="go" id="wNext">Next level</button><button class="go" id="wShare" hidden>Share</button><button class="ghost" id="wRetry">Replay</button><button class="ghost" id="wMenu">Levels</button></div>
   </div>
 </div>
 
@@ -381,7 +400,8 @@ function rng(seed) { return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let
 /* ---------- save ---------- */
 const KEY = 'knotwizard.v1';
 function load() { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { return {}; } }
-const save = Object.assign({ stars: {}, best: {}, hints: 3, skin: 'classic', noAds: false, daily: { last: null, streak: 0 }, sound: true, music: true, sinceAd: 0 }, load());
+const save = Object.assign({ stars: {}, best: {}, hints: 3, skin: 'classic', noAds: false, daily: { last: null, streak: 0, best: 0, days: [] }, book: [], sound: true, music: true, sinceAd: 0 }, load());
+save.daily.days = save.daily.days || []; save.book = save.book || [];
 function persist() { try { localStorage.setItem(KEY, JSON.stringify(save)); } catch (e) {} }
 const totalStars = () => Object.values(save.stars).reduce((a, b) => a + b, 0);
 
@@ -650,7 +670,27 @@ function levelDef(i) {
   return (cache[i] = def);
 }
 function todayKey(d = new Date()) { return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate(); }
-function dailyDef() { const k = todayKey(); if (!cache['d' + k]) cache['d' + k] = genLevel(k * 13 + 5, { n: 11, e: 19, cross: 10 }); return cache['d' + k]; }
+// The Daily Knot: a mystery picture every day, with a twist that follows the day of the week.
+const DAILY_TWISTS = [   // by getDay(), Sunday first
+  { name: 'Super Sunday', sub: 'A big tangle', w: 0, cross: 1.5 },
+  { name: 'Mellow Monday', sub: 'Classic knot', w: 0, cross: 1.1 },
+  { name: 'Tricky Tuesday', sub: 'Locked pins', w: 1, cross: 1.1, locks: 2 },
+  { name: 'Wobbly Wednesday', sub: 'Stretchy ropes', w: 2, cross: 1.1, stretch: 3 },
+  { name: 'Tied Thursday', sub: 'Tied pins', w: 3, cross: 1.1, links: 2 },
+  { name: 'Freaky Friday', sub: 'Spinning board', w: 4, cross: 1.1, spin: 0.18, locks: 1 },
+  { name: 'Speedy Saturday', sub: 'Quick knot', w: 0, cross: 0.8 },
+];
+const DAY0 = Date.UTC(2026, 9, 1);
+const dailyNo = (d = new Date()) => Math.round((Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) - DAY0) / 864e5) + 1;
+const dailyTwist = (d = new Date()) => DAILY_TWISTS[d.getDay()];
+const dailyPic = (d = new Date()) => PICTURES[(dailyNo(d) * 7) % PICTURES.length];
+function dailyDef() {
+  const k = todayKey(); if (cache['d' + k]) return cache['d' + k];
+  const tw = dailyTwist(), pic = dailyPic(), disc = !!WORLDS[tw.w].disc, shape = picShape(pic, disc);
+  const def = genLevel(k * 13 + 5, { shape, pic, scramble: SCRAMBLES[dailyNo() % SCRAMBLES.length], cross: Math.round(shape.pts.length * tw.cross), locks: tw.locks, stretch: tw.stretch, links: tw.links, disc });
+  if (def) def.spin = tw.spin || 0;
+  return (cache['d' + k] = def);
+}
 const yesterdayKey = () => { const d = new Date(); d.setDate(d.getDate() - 1); return todayKey(d); };
 
 /* ---------- audio ---------- */
@@ -842,15 +882,15 @@ function applyTheme(w) {
 function startPuzzle(kind, idx) {
   const def = kind === 'daily' ? dailyDef() : levelDef(idx);
   if (!def) { toast('This level could not be built. Try another.'); return; }
-  const w = kind === 'daily' ? 0 : worldOf(idx);
+  const w = kind === 'daily' ? dailyTwist().w : worldOf(idx);
   G = { kind, idx, w, def, P: def.start.map(p => ({ ...p })), E: def.E, inc: incidence(def.n, def.E), moves: 0, undo: [], solved: false, hint: null, drag: -1, lastTap: 0, solvedAt: 0, theta: 0, spin: def.spin || 0, shake: null, ptr: null, strain: false };
   G.cross = crossings(G.P, G.E).length; G.startCross = G.cross;
-  $('#gName').textContent = kind === 'daily' ? 'Daily Knot' : `${WORLDS[w].name} ${localOf(idx)}`;
+  $('#gName').textContent = kind === 'daily' ? `Daily #${dailyNo()}` : `${WORLDS[w].name} ${localOf(idx)}`;
   $('#gPar').textContent = `par ${def.par}`; hideCast();
   applyTheme(w); music.want(w);
   setWizard(false);
   updateHud();
-  const intro = kind === 'level' && localOf(idx) <= 2 && WORLDS[w].intro;
+  const intro = kind === 'level' ? localOf(idx) <= 2 && WORLDS[w].intro : `${dailyTwist().name}: ${dailyTwist().sub.toLowerCase()}`;
   if (intro) { say(intro, 3200); if (localOf(idx) === 1) toast(intro); } else if (def.pic) say('A picture is hiding in this knot', 3200); else say(`Untie ${G.cross} knot${G.cross === 1 ? '' : 's'}`);
   show('game'); resize();
   if (!running) { running = true; requestAnimationFrame(loop); }
@@ -952,7 +992,8 @@ function win() {
   const stars = m <= par ? 3 : m <= par + Math.ceil(par * 0.6) + 1 ? 2 : 1;
   castSpell(stars);
   const key = G.kind === 'daily' ? null : G.idx;
-  let sub = '';
+  let sub = '', reward = '';
+  if (G.def.pic && !save.book.includes(G.def.pic.id)) save.book.push(G.def.pic.id);
   if (key) {
     const prev = save.stars[key] || 0; save.stars[key] = Math.max(prev, stars);
     save.best[key] = Math.min(save.best[key] || 999, m);
@@ -963,9 +1004,16 @@ function win() {
     if (key === LAST) sub = 'You untied the whole kingdom. You are a true Knot Wizard!';
     else if (localOf(key) === PER) sub = `You cleared the ${WORLDS[worldOf(key)].name}! The ${WORLDS[worldOf(key) + 1].name} is open.`;
   } else {
-    const k = todayKey();
-    if (save.daily.last !== k) { save.daily.streak = save.daily.last === yesterdayKey() ? save.daily.streak + 1 : 1; save.daily.last = k; }
-    sub = `Daily streak: ${save.daily.streak} day${save.daily.streak === 1 ? '' : 's'}. A new knot appears tomorrow.`;
+    const k = todayKey(), D = save.daily;
+    reward = '';
+    if (D.last !== k) {
+      D.streak = D.last === yesterdayKey() ? D.streak + 1 : 1; D.last = k; D.best = Math.max(D.best || 0, D.streak);
+      D.days = D.days.filter(x => x !== k).concat(k).slice(-60);
+      const gift = 1 + (D.streak % 7 === 0 ? 4 : D.streak % 3 === 0 ? 2 : 0); save.hints += gift;
+      reward = `+${gift} hint${gift > 1 ? 's' : ''}${gift > 1 ? ` · ${D.streak}-day streak bonus!` : ''}`;
+      remindTomorrow();
+    }
+    sub = `${D.streak}-day streak. A new mystery knot appears tomorrow.`;
   }
   persist();
   setTimeout(() => {
@@ -974,6 +1022,8 @@ function win() {
     $('#wMoves').textContent = m; $('#wPar').textContent = par; $('#wBest').textContent = key ? save.best[key] : m;
     $('#wSub').textContent = sub;
     $('#wNext').hidden = !key || key >= LAST;
+    $('#wReward').hidden = !reward; $('#wReward').textContent = reward;
+    $('#wShare').hidden = !!key;
     $('#wNext').textContent = key && localOf(key) === PER ? `On to the ${WORLDS[worldOf(key) + 1] ? WORLDS[worldOf(key) + 1].name : ''}` : 'Next level';
     $('#win').hidden = false; $('#cast').classList.add('off');
     $('#wPic').hidden = !G.def.pic; if (G.def.pic) drawPicture($('#wPic'), G.def.pic);
@@ -1017,6 +1067,25 @@ function hideCast() { const el = $('#cast'); el.hidden = true; el.className = ''
 function maybeInterstitial(then) { const idx = G && G.kind === 'level' ? G.idx : 0; money.interstitial(idx).then(then); }
 $('#wNext').onclick = () => { $('#win').hidden = true; const n = G.idx + 1; maybeInterstitial(() => startPuzzle('level', n)); };
 $('#wRetry').onclick = () => { $('#win').hidden = true; const g = G; maybeInterstitial(() => startPuzzle(g.kind, g.idx)); };
+$('#wShare').onclick = () => shareDaily();
+function shareDaily() {
+  if (!G) return;
+  const st = G.moves <= G.def.par ? 3 : G.moves <= G.def.par + Math.ceil(G.def.par * 0.6) + 1 ? 2 : 1;
+  const text = `Knot Wizard Daily #${dailyNo()} 🧙\n${dailyTwist().name}\n${'⭐'.repeat(st)}${'▫️'.repeat(3 - st)} ${G.moves} moves (par ${G.def.par})\n🔥 ${save.daily.streak}-day streak`;
+  if (navigator.share) navigator.share({ text }).catch(() => {});
+  else if (navigator.clipboard) navigator.clipboard.writeText(text).then(() => toast('Copied. Paste it anywhere!'), () => toast(text));
+  else toast(text);
+}
+// A gentle nudge at 9am tomorrow, in the app only (needs @capacitor/local-notifications).
+async function remindTomorrow() {
+  const LN = window.Capacitor && Capacitor.Plugins && Capacitor.Plugins.LocalNotifications; if (!LN) return;
+  try {
+    const p = await LN.requestPermissions(); if (p.display !== 'granted') return;
+    const at = new Date(); at.setDate(at.getDate() + 1); at.setHours(9, 0, 0, 0);
+    await LN.cancel({ notifications: [{ id: 1 }] }).catch(() => {});
+    await LN.schedule({ notifications: [{ id: 1, title: 'Your Daily Knot is ready', body: `A new mystery picture is waiting. Keep your ${save.daily.streak}-day streak going!`, schedule: { at } }] });
+  } catch (e) {}
+}
 $('#wMenu').onclick = () => { $('#win').hidden = true; toMenu(); };
 function toMenu() { hideCast(); if (G && G.kind === 'level') menuWorld = G.w; G = null; renderMenu(); show('menu'); }
 
@@ -1298,14 +1367,33 @@ function renderMenu() {
   }
   $('#grid').innerHTML = h;
   $('#gridLabel').textContent = `${WORLDS[menuWorld].name} · ${WORLDS[menuWorld].sub}`;
-  const k = todayKey(), done = save.daily.last === k;
-  const streak = save.daily.last === k || save.daily.last === yesterdayKey() ? save.daily.streak : 0;
-  $('#dailySub').textContent = `${done ? 'Solved today' : 'One hard knot, new every day'} · streak ${streak} day${streak === 1 ? '' : 's'}`;
-  $('#dailyGo').textContent = done ? 'Replay' : 'Play';
+  renderDaily();
   $('#mSound').textContent = save.sound ? 'Sound on' : 'Sound off';
   $('#mMusic').textContent = save.music ? 'Music on' : 'Music off';
   $('#mPlay').textContent = totalStars() ? `Play ${WORLDS[worldOf(next)].name} ${localOf(next)}` : 'Play';
 }
+function renderDaily() {
+  const k = todayKey(), D = save.daily, done = D.last === k, tw = dailyTwist();
+  const streak = done || D.last === yesterdayKey() ? D.streak : 0;
+  $('#dNum').textContent = '#' + dailyNo();
+  $('#dailySub').textContent = done ? `Solved! It was ${dailyPic().name}.` : `${tw.name} · ${tw.sub}`;
+  $('#dailyGo').textContent = done ? 'Replay' : 'Play';
+  const cnv = $('#dPic'), c = cnv.getContext('2d');
+  if (done) drawPicture(cnv, dailyPic());
+  else { c.clearRect(0, 0, 116, 116); c.fillStyle = '#f5b83d'; c.font = '800 64px Sniglet, sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('?', 58, 62); }
+  // this week, Monday first; a gift marks the days a streak bonus lands on
+  const now = new Date(), mon = new Date(now); mon.setDate(now.getDate() - (now.getDay() + 6) % 7);
+  $('#dWeek').innerHTML = [...'MTWTFSS'].map((L, i) => {
+    const d = new Date(mon); d.setDate(mon.getDate() + i); const dk = todayKey(d), ahead = Math.round((d - now) / 864e5 + 0.5);
+    const solved = D.days.includes(dk), today = dk === k, s2 = streak + (done ? 0 : 1) + (ahead > 0 ? ahead : 0);
+    const gift = !solved && dk >= k && (s2 % 3 === 0 || s2 % 7 === 0);
+    return `<span class="${solved ? 'done' : ''} ${today ? 'today' : ''} ${gift ? 'gift' : ''}"><i>${solved ? '★' : gift ? '🎁' : ''}</i>${L}</span>`;
+  }).join('');
+  $('#dStreak').textContent = streak ? `🔥 ${streak}-day streak` : 'Start a streak today';
+  if (done) { const t = new Date(now); t.setHours(24, 0, 0, 0); const m = Math.ceil((t - now) / 6e4); $('#dNext').textContent = `Next knot in ${Math.floor(m / 60)}h ${m % 60}m`; }
+  else $('#dNext').textContent = 'Solve today: +1 hint';
+}
+setInterval(() => { if (!$('#menu').hidden) renderDaily(); }, 30000);
 function nextLevel() { for (let i = 1; i <= LAST; i++) if (!save.stars[i] && isOpen(i)) return i; return LAST; }
 $('#worlds').addEventListener('click', e => { const b = e.target.closest('[data-w]'); if (b && !b.disabled) { menuWorld = +b.dataset.w; renderMenu(); } });
 $('#grid').addEventListener('click', e => { const b = e.target.closest('[data-l]'); if (b) startPuzzle('level', +b.dataset.l); });
