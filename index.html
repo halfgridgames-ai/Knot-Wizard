@@ -103,6 +103,26 @@ body, .icon-btn, .tool, .moves, .lv, .chip { transition: background-color .4s; }
 .stars svg:nth-child(2) { width: 74px; height: 74px; margin-top: -10px; }
 .stars svg:nth-child(2).on { animation-delay: .15s; } .stars svg:nth-child(3).on { animation-delay: .3s; }
 @keyframes starpop { from { transform: scale(0.2) rotate(-40deg); opacity: 0; } }
+.stars svg:nth-child(2).on { animation-delay: .3s; } .stars svg:nth-child(3).on { animation-delay: .6s; }
+/* win celebration: the wizard rises over the board and casts the finishing spell */
+#cast { position: absolute; inset: 0; pointer-events: none; z-index: 2; overflow: hidden; }
+#cast .bigwiz { position: absolute; left: 50%; bottom: -4px; width: min(46%, 190px); aspect-ratio: 120 / 160; margin-left: calc(min(46%, 190px) / -2); transform: translateY(105%); }
+#cast.on .bigwiz { animation: wizrise .5s cubic-bezier(.25,1.5,.5,1) forwards, wizbob 1.6s ease-in-out .5s infinite; }
+#cast .arm { transform-origin: 82px 104px; transform: rotate(15deg); }
+#cast.on .arm { animation: wandcast .55s cubic-bezier(.3,1.4,.5,1) .38s forwards; }
+#cast.joy, .card .peek, #wiz.bounce { --eyes: 0; --happy: 1; }
+#cast .word { position: absolute; left: 0; right: 0; top: 11%; text-align: center; font-family: var(--display); font-weight: 800; font-size: clamp(34px, 11vw, 52px); color: var(--honey); text-shadow: 0 4px 0 var(--honey-deep), 0 0 24px rgba(245,184,61,.6); }
+#cast .word i { display: inline-block; font-style: normal; opacity: 0; }
+#cast.on .word i { animation: letterpop .4s cubic-bezier(.2,1.8,.4,1) forwards; }
+#cast.off { opacity: 0; transition: opacity .3s; }
+@keyframes wizrise { to { transform: translateY(0); } }
+@keyframes wizbob { 0%, 100% { translate: 0 0; } 50% { translate: 0 -6px; } }
+@keyframes wandcast { 0% { transform: rotate(15deg); } 55% { transform: rotate(-25deg); } 100% { transform: rotate(-12deg); } }
+@keyframes letterpop { from { opacity: 0; transform: translateY(24px) scale(.3) rotate(-20deg); } to { opacity: 1; transform: none; } }
+#win .card { overflow: visible; max-height: none; margin-top: 56px; }
+.card .peek { width: 74px; height: 86px; margin: -70px auto -10px; animation: peek .5s cubic-bezier(.25,1.6,.5,1) both, wizbob 1.6s ease-in-out .5s infinite; }
+@keyframes peek { from { transform: translateY(30px) scale(.6); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { #cast.on .bigwiz, #cast.on .arm, #cast.on .word i, .card .peek { animation-duration: .01s !important; animation-delay: 0s !important; } }
 .card .row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
 .stat { display: flex; justify-content: center; gap: 18px; font-weight: 800; font-variant-numeric: tabular-nums; }
 .stat span { display: flex; flex-direction: column; align-items: center; }
@@ -240,8 +260,8 @@ HGSplash.show();
       <ellipse cx="24" cy="24" rx="17" ry="3.6" fill="#432f8a"/>
       <circle cx="24" cy="32" r="9.5" fill="#f3c9a6"/>
       <path d="M14.5 34c1 9 5 14 9.5 18 4.5-4 8.5-9 9.5-18-3 3-6 4-9.5 4s-6.5-1-9.5-4z" fill="#f6f1e6"/>
-      <g class="eyes"><circle cx="20.5" cy="31" r="1.5" fill="#2b2140"/><circle cx="27.5" cy="31" r="1.5" fill="#2b2140"/></g>
-      <g class="happy" style="display:none"><path d="M18.8 31.5q1.7-2 3.4 0M25.8 31.5q1.7-2 3.4 0" fill="none" stroke="#2b2140" stroke-width="1.5" stroke-linecap="round"/></g>
+      <g class="eyes" style="opacity:var(--eyes,1)"><circle cx="20.5" cy="31" r="1.5" fill="#2b2140"/><circle cx="27.5" cy="31" r="1.5" fill="#2b2140"/></g>
+      <g class="happy" style="opacity:var(--happy,0)"><path d="M18.8 31.5q1.7-2 3.4 0M25.8 31.5q1.7-2 3.4 0" fill="none" stroke="#2b2140" stroke-width="1.5" stroke-linecap="round"/></g>
       <circle cx="24" cy="35" r="1.6" fill="#e08b74"/>
     </symbol>
   </defs>
@@ -288,7 +308,20 @@ HGSplash.show();
       <div class="moves"><small>Moves</small><b id="gMoves">0</b><small id="gPar">par 2</small></div>
       <svg id="wiz" aria-hidden="true"><use href="#wizard"/></svg>
     </header>
-    <div id="boardWrap"><canvas id="board" aria-label="Puzzle board: drag the wooden pins"></canvas></div>
+    <div id="boardWrap"><canvas id="board" aria-label="Puzzle board: drag the wooden pins"></canvas>
+      <div id="cast" hidden><div class="word" aria-hidden="true"></div><svg class="bigwiz" viewBox="0 0 120 160" aria-hidden="true">
+      <path d="M38 84h44l20 72H18z" fill="#6a4fc4"/><path d="M60 84h22l20 72H70z" fill="#432f8a"/>
+      <path d="M18 156h84l-3-10H21z" fill="#f5b83d" opacity=".9"/>
+      <path d="M30 128l2.4 5 5.4.6-4 3.7 1.1 5.3L30 140l-4.9 2.6 1.1-5.3-4-3.7 5.4-.6z" fill="#f5b83d"/><circle cx="88" cy="120" r="2.2" fill="#f5b83d"/><circle cx="46" cy="110" r="1.6" fill="#f5b83d"/>
+      <path d="M40 96q-12 10-10 26" stroke="#5a40ad" stroke-width="11" stroke-linecap="round" fill="none"/><circle cx="31" cy="124" r="5.5" fill="#f3c9a6"/>
+      <use href="#wizard" x="18" y="0" width="84" height="98"/>
+      <g class="arm">
+        <path d="M82 104q14 2 20-10" stroke="#5a40ad" stroke-width="11" stroke-linecap="round" fill="none"/>
+        <path d="M102 94L112 40" stroke="#7c4a22" stroke-width="4" stroke-linecap="round"/>
+        <g><path d="M113 28l2.6 6.8 7 .6-5.4 4.6 1.8 7-6-3.8-6 3.8 1.8-7-5.4-4.6 7-.6z" fill="#f5b83d"/></g>
+        <circle cx="102" cy="94" r="5.5" fill="#f3c9a6"/>
+      </g>
+      </svg></div></div>
     <footer class="bar bottom">
       <button class="tool" id="gUndo"><svg><use href="#i-undo"/></svg>Undo</button>
       <button class="tool" id="gReset"><svg><use href="#i-reset"/></svg>Restart</button>
@@ -299,6 +332,7 @@ HGSplash.show();
 
 <div class="overlay" id="win" hidden>
   <div class="card">
+    <svg class="peek" viewBox="0 0 48 56" aria-hidden="true"><use href="#wizard"/></svg>
     <h2 id="wTitle">Untangled!</h2>
     <div class="stars" id="wStars"></div>
     <div class="stat"><span><small>Moves</small><b id="wMoves">0</b></span><span><small>Par</small><b id="wPar">0</b></span><span><small>Best</small><b id="wBest">0</b></span></div>
@@ -725,7 +759,7 @@ function startPuzzle(kind, idx) {
   G = { kind, idx, w, def, P: def.start.map(p => ({ ...p })), E: def.E, inc: incidence(def.n, def.E), moves: 0, undo: [], solved: false, hint: null, drag: -1, lastTap: 0, solvedAt: 0, theta: 0, spin: def.spin || 0, shake: null, ptr: null, strain: false };
   G.cross = crossings(G.P, G.E).length; G.startCross = G.cross;
   $('#gName').textContent = kind === 'daily' ? 'Daily Knot' : `${WORLDS[w].name} ${localOf(idx)}`;
-  $('#gPar').textContent = `par ${def.par}`;
+  $('#gPar').textContent = `par ${def.par}`; hideCast();
   applyTheme(w); music.want(w);
   setWizard(false);
   updateHud();
@@ -826,10 +860,10 @@ $('#gBack').onclick = () => { toMenu(); };
 /* ---------- win ---------- */
 function win() {
   G.solved = true; G.solvedAt = performance.now(); G.hint = null; updateHud();
-  say('Spellbound!'); setWizard(true); fanfare();
-  G.P.forEach((p, i) => { const q = toPx(p); for (let k = 0; k < 9; k++) particles.push({ x: q.x, y: q.y, vx: (Math.random() - 0.5) * 320, vy: -Math.random() * 360 - 60, life: 1, col: ['#f5b83d', '#ffffff', ROPES[(i + k) % 6]][k % 3] }); });
+  say('Spellbound!'); setWizard(true);
   const par = G.def.par, m = G.moves;
   const stars = m <= par ? 3 : m <= par + Math.ceil(par * 0.6) + 1 ? 2 : 1;
+  castSpell(stars);
   const key = G.kind === 'daily' ? null : G.idx;
   let sub = '';
   if (key) {
@@ -854,14 +888,34 @@ function win() {
     $('#wSub').textContent = sub;
     $('#wNext').hidden = !key || key >= LAST;
     $('#wNext').textContent = key && localOf(key) === PER ? `On to the ${WORLDS[worldOf(key) + 1] ? WORLDS[worldOf(key) + 1].name : ''}` : 'Next level';
-    $('#win').hidden = false;
-  }, 900);
+    $('#win').hidden = false; $('#cast').classList.add('off');
+    for (let i = 0; i < stars; i++) { tone(784 * Math.pow(1.26, i), 0.12 + i * 0.3, 0.4, 'triangle', 0.14); tone(1568 * Math.pow(1.26, i), 0.14 + i * 0.3, 0.25, 'sine', 0.05); }
+  }, 1900);
 }
+// the wizard rises over the board, flicks his wand and the spell bursts from its tip
+function castSpell(stars) {
+  const el = $('#cast'), word = stars === 3 ? 'Spellbound!' : 'Untangled!';
+  el.querySelector('.word').innerHTML = [...word].map((ch, i) => `<i style="animation-delay:${0.7 + i * 0.045}s">${ch}</i>`).join('');
+  el.hidden = false; el.className = ''; void el.offsetWidth; el.className = 'on';
+  [392, 523, 659, 784, 988].forEach((f, i) => tone(f, 0.25 + i * 0.05, 0.18, 'sine', 0.06));   // the wand charging up
+  const g = G;
+  setTimeout(() => {
+    if (G !== g) return;
+    el.classList.add('joy'); fanfare();
+    // wand tip (113,37 in the wizard's 120x160 drawing) turned about the shoulder (82,104) to the top of the flick
+    const r = cv.getBoundingClientRect(), wz = el.querySelector('.bigwiz').getBoundingClientRect(), k = wz.width / 120, an = -25 * Math.PI / 180;
+    const x = wz.left - r.left + k * (82 + 31 * Math.cos(an) + 67 * Math.sin(an)), y = wz.top - r.top + k * (104 + 31 * Math.sin(an) - 67 * Math.cos(an));
+    particles.push({ x, y, vx: 0, vy: 0, life: 1, ring: true, col: '#f5b83d' });
+    for (let k = 0; k < 46; k++) { const a = Math.random() * 7, v = 160 + Math.random() * 420; particles.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 120, life: 1 + Math.random() * 0.4, star: 4 + Math.random() * 5, col: k % 3 ? '#f5b83d' : '#fff6d8' }); }
+    G.P.forEach((p, i) => { const q = toPx(p); for (let k = 0; k < 6; k++) particles.push({ x: q.x, y: q.y, vx: (Math.random() - 0.5) * 300, vy: -Math.random() * 340 - 60, life: 1, star: k % 2 ? 4 : 0, col: ['#f5b83d', '#ffffff', ROPES[(i + k) % 6]][k % 3] }); });
+  }, 680);
+}
+function hideCast() { const el = $('#cast'); el.hidden = true; el.className = ''; }
 function maybeInterstitial(then) { const idx = G && G.kind === 'level' ? G.idx : 0; money.interstitial(idx).then(then); }
 $('#wNext').onclick = () => { $('#win').hidden = true; const n = G.idx + 1; maybeInterstitial(() => startPuzzle('level', n)); };
 $('#wRetry').onclick = () => { $('#win').hidden = true; const g = G; maybeInterstitial(() => startPuzzle(g.kind, g.idx)); };
 $('#wMenu').onclick = () => { $('#win').hidden = true; toMenu(); };
-function toMenu() { if (G && G.kind === 'level') menuWorld = G.w; G = null; renderMenu(); show('menu'); }
+function toMenu() { hideCast(); if (G && G.kind === 'level') menuWorld = G.w; G = null; renderMenu(); show('menu'); }
 
 /* ---------- drawing ---------- */
 let last = performance.now();
@@ -967,7 +1021,13 @@ function draw(time, dt) {
 }
 function drawParticles(c, dt) {
   particles = particles.filter(p => (p.life -= dt * 0.9) > 0);
-  particles.forEach(p => { p.vy += 600 * dt; p.x += p.vx * dt; p.y += p.vy * dt; c.globalAlpha = Math.max(0, p.life); c.fillStyle = p.col; c.save(); c.translate(p.x, p.y); c.rotate(p.life * 8); c.fillRect(-3, -3, 6, 6); c.restore(); });
+  particles.forEach(p => {
+    c.globalAlpha = clamp(p.life, 0, 1);
+    if (p.ring) { const r = (1 - p.life) * Math.max(W, H) * 0.9; c.strokeStyle = p.col; c.lineWidth = 10 * p.life; c.beginPath(); c.arc(p.x, p.y, r, 0, 7); c.stroke(); return; }
+    p.vy += (p.star ? 420 : 600) * dt; p.x += p.vx * dt; p.y += p.vy * dt; c.fillStyle = p.col; c.save(); c.translate(p.x, p.y); c.rotate(p.life * 8);
+    if (p.star) { c.beginPath(); for (let k = 0; k < 10; k++) { const a = k * Math.PI / 5, rr = k % 2 ? p.star * 0.45 : p.star; c.lineTo(Math.cos(a) * rr, Math.sin(a) * rr); } c.fill(); } else c.fillRect(-3, -3, 6, 6);
+    c.restore();
+  });
   c.globalAlpha = 1;
 }
 
