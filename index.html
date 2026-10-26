@@ -160,6 +160,8 @@ body, .icon-btn, .tool, .moves, .lv, .chip { transition: background-color .4s; }
 .buy.eq { background: #4fd1a0; color: #073626; }
 .buy:disabled { background: rgba(255,255,255,0.08); color: var(--ink-dim); cursor: default; }
 .buy.ad { background: var(--plum); color: #fff; }
+.rate { background: rgba(245,184,61,0.12); border: 1px solid rgba(245,184,61,0.35); border-radius: 14px; padding: 12px; display: flex; flex-direction: column; gap: 10px; text-align: center; font-weight: 700; font-size: 14px; }
+.rate .ghost { padding: 6px 14px; font-size: 14px; }
 .note { font-size: 12px; color: var(--ink-dim); font-weight: 700; text-align: center; }
 .adbar { height: 10px; border-radius: 99px; background: rgba(255,255,255,0.1); overflow: hidden; }
 .adbar i { display: block; height: 100%; width: 0; background: var(--honey); }
@@ -313,8 +315,7 @@ HGSplash.show();
         <button class="go" id="mPlay">Play</button>
         <button class="ghost" id="mBook">Spellbook</button>
         <button class="ghost" id="mShop">Shop</button>
-        <button class="ghost" id="mSound">Sound on</button>
-        <button class="ghost" id="mMusic">Music on</button>
+        <button class="ghost" id="mSettings">Settings</button>
       </div>
     </div>
   </section>
@@ -345,6 +346,7 @@ HGSplash.show();
     <div class="stat"><span><small>Moves</small><b id="wMoves">0</b></span><span><small>Par</small><b id="wPar">0</b></span><span><small>Best</small><b id="wBest">0</b></span></div>
     <p id="wSub"></p>
     <p class="reward" id="wReward" hidden></p>
+    <div class="rate" id="wRate" hidden><span>Enjoying Knot Wizard? A quick rating helps other puzzlers find it.</span><div class="row"><button class="buy" id="wRateYes">Rate it ★</button><button class="ghost" id="wRateNo">Not now</button></div></div>
     <div class="row"><button class="go" id="wNext">Next level</button><button class="go" id="wShare" hidden>Share</button><button class="ghost" id="wRetry">Replay</button><button class="ghost" id="wMenu">Levels</button></div>
   </div>
 </div>
@@ -367,6 +369,15 @@ HGSplash.show();
     <div class="items" id="extras"></div>
     <p class="note" id="shopMsg" role="status"></p>
     <div class="row"><button class="go" id="shopClose">Done</button></div>
+  </div>
+</div>
+
+<div class="overlay" id="settings" hidden>
+  <div class="card">
+    <h2>Settings</h2>
+    <div class="items" id="setItems"></div>
+    <p class="note" id="setVer"></p>
+    <div class="row"><button class="go" id="setClose">Done</button></div>
   </div>
 </div>
 
@@ -1109,6 +1120,7 @@ function win() {
     $('#wNext').hidden = !key || key >= LAST;
     $('#wReward').hidden = !reward; $('#wReward').textContent = reward;
     $('#wShare').hidden = !!key;
+    $('#wRate').hidden = !askRate(key, stars);
     $('#wNext').textContent = key && localOf(key) === PER ? `On to the ${WORLDS[worldOf(key) + 1] ? WORLDS[worldOf(key) + 1].name : ''}` : 'Next level';
     $('#win').hidden = false; $('#cast').classList.add('off');
     $('#wPic').hidden = !G.def.pic; if (G.def.pic) drawPicture($('#wPic'), G.def.pic);
@@ -1155,6 +1167,13 @@ function maybeInterstitial(then) { const idx = G && G.kind === 'level' ? G.idx :
 $('#wNext').onclick = () => { $('#win').hidden = true; const n = G.idx + 1; maybeInterstitial(() => startPuzzle('level', n)); };
 $('#wRetry').onclick = () => { $('#win').hidden = true; const g = G; maybeInterstitial(() => startPuzzle(g.kind, g.idx)); };
 $('#wShare').onclick = () => shareDaily();
+// ask for a rating once, after a three-star win from level 8 on, when the player is having a good time
+function askRate(key, stars) {
+  if (save.rateAsked || !key || stars < 3 || Object.keys(save.stars).length < 8) return false;
+  save.rateAsked = true; persist(); return true;
+}
+$('#wRateYes').onclick = () => { $('#wRate').hidden = true; openLink(LINKS.rate); };
+$('#wRateNo').onclick = () => { $('#wRate').hidden = true; };
 function shareDaily() {
   if (!G) return;
   const st = G.moves <= G.def.par ? 3 : G.moves <= G.def.par + Math.ceil(G.def.par * 0.6) + 1 ? 2 : 1;
@@ -1455,9 +1474,7 @@ function renderMenu() {
   $('#grid').innerHTML = h;
   $('#gridLabel').textContent = `${WORLDS[menuWorld].name} · ${WORLDS[menuWorld].sub}`;
   renderDaily();
-  $('#mSound').textContent = save.sound ? 'Sound on' : 'Sound off';
-  $('#mMusic').textContent = save.music ? 'Music on' : 'Music off';
-  $('#mPlay').textContent = totalStars() ? `Play ${WORLDS[worldOf(next)].name} ${localOf(next)}` : 'Play';
+    $('#mPlay').textContent = totalStars() ? `Play ${WORLDS[worldOf(next)].name} ${localOf(next)}` : 'Play';
 }
 function renderDaily() {
   const k = todayKey(), D = save.daily, done = D.last === k, tw = dailyTwist();
@@ -1485,8 +1502,31 @@ $('#worlds').addEventListener('click', e => { const b = e.target.closest('[data-
 $('#grid').addEventListener('click', e => { const b = e.target.closest('[data-l]'); if (b) startPuzzle('level', +b.dataset.l); });
 $('#mPlay').onclick = () => startPuzzle('level', nextLevel());
 $('#dailyGo').onclick = () => startPuzzle('daily', 0);
-$('#mSound').onclick = () => { save.sound = !save.sound; persist(); music.want(menuWorld); renderMenu(); };
-$('#mMusic').onclick = () => { save.music = !save.music; persist(); music.want(menuWorld); renderMenu(); };
+// Settings: sound, rating, ad choices and the legal pages (links open in the phone's browser or Play Store)
+const VERSION = '1.1.1';
+const SITE = 'https://halfgridgames-ai.github.io/Knot-Wizard/';
+const LINKS = { rate: 'https://play.google.com/store/apps/details?id=com.halfgridgames.knotwizard', privacy: SITE + 'privacy.html', terms: SITE + 'terms.html', mail: 'mailto:halfgridgames@gmail.com?subject=Knot%20Wizard' };
+function openLink(url) { if (url.startsWith('mailto:')) location.href = url; else window.open(url, '_blank'); }
+function renderSettings() {
+  const row = (id, name, desc, btn, cls) => `<div class="item"><div class="info"><b>${name}</b><small>${desc}</small></div><button class="buy ${cls || ''}" data-set="${id}">${btn}</button></div>`;
+  $('#setItems').innerHTML =
+    row('sound', 'Sound', 'Clicks, chimes and the spell', save.sound ? 'On' : 'Off', save.sound ? 'eq' : '') +
+    row('music', 'Music', 'A tune for every world', save.music ? 'On' : 'Off', save.music ? 'eq' : '') +
+    row('rate', 'Rate Knot Wizard', 'Tell us how we did on Google Play', 'Rate ★') +
+    (money.adMob ? row('ads', 'Ad privacy choices', 'Change how ads use your data', 'Open', 'ad') : '') +
+    row('privacy', 'Privacy policy', 'What the game stores and why', 'Read', 'ad') +
+    row('terms', 'Terms of service', 'The rules for using the game', 'Read', 'ad') +
+    row('mail', 'Contact us', 'halfgridgames@gmail.com', 'Email', 'ad');
+  $('#setVer').textContent = `Knot Wizard ${VERSION} · Half Grid Games`;
+}
+$('#setItems').addEventListener('click', e => {
+  const b = e.target.closest('[data-set]'); if (!b) return; const id = b.dataset.set;
+  if (id === 'sound' || id === 'music') { save[id] = !save[id]; persist(); music.want(menuWorld); renderSettings(); }
+  else if (id === 'ads') money.adMob.showPrivacyOptionsForm().catch(() => {});
+  else openLink(LINKS[id]);
+});
+$('#mSettings').onclick = () => { renderSettings(); $('#settings').hidden = false; };
+$('#setClose').onclick = () => { $('#settings').hidden = true; };
 // browsers only allow sound after a tap, so the menu music starts on the first one
 document.addEventListener('pointerdown', () => { if (!music.timer && save.music && save.sound) music.want(G ? G.w : Math.max(0, menuWorld)); }, true);
 function show(id) { $('#menu').hidden = id !== 'menu'; $('#game').hidden = id !== 'game'; }
