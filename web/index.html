@@ -1322,9 +1322,9 @@ function drawParticles(c, dt) {
    Before launch, swap the Google test ad unit ids below for real ones from AdMob (each app has its own). */
 const PLATFORM = (window.Capacitor && Capacitor.getPlatform && Capacitor.getPlatform()) || 'web';
 const AD_UNITS = PLATFORM === 'ios'
-  ? { rewarded: 'ca-app-pub-3940256099942544/1712485313', interstitial: 'ca-app-pub-3940256099942544/4411468910' }
+  ? { rewarded: 'ca-app-pub-4390358547833612/1056024735', interstitial: 'ca-app-pub-4390358547833612/8443560169' }
   : { rewarded: 'ca-app-pub-3940256099942544/5224354917', interstitial: 'ca-app-pub-3940256099942544/1033173712' };
-const AD_TESTING = true;   // set false for the release build once real ad unit ids are in
+const AD_TESTING = PLATFORM !== 'ios';   // iPhone has its real ad units; Android stays on test ids until its real ones are in
 // Product ids must match the in-app products created in Play Console and App Store Connect. Prices here are
 // fallbacks; the app shows the store's local price once it has loaded.
 const PRODUCTS = [
