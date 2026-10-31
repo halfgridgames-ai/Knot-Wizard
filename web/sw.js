@@ -1,5 +1,5 @@
 // Offline cache for the installed app. The version changes on every build so phones pick up updates.
-const CACHE = 'knot-wizard-21ff82acdb';
+const CACHE = 'knot-wizard-b460f449f3';
 const FILES = ['./', 'index.html', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES))); self.skipWaiting(); });
 self.addEventListener('activate', e => {
