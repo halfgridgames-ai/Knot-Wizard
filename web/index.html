@@ -1333,6 +1333,11 @@ const PRODUCTS = [
   { id: 'hints_40', name: '40 hints', hints: 40, price: '£2.99', desc: 'A whole spellbook of hints.', tag: 'Best value' },
 ];
 const findProduct = id => PRODUCTS.find(p => p.id === id);
+// App Store product ids are unique across the whole developer account, so a few iPhone ids carry a game prefix.
+// The game always uses the plain ids; storeId/gameId translate at the store boundary.
+const STORE_IDS = PLATFORM === 'ios' ? { remove_ads: 'kw_remove_ads' } : {};
+const storeId = id => STORE_IDS[id] || id;
+const gameId = sid => Object.keys(STORE_IDS).find(k => STORE_IDS[k] === sid) || sid;
 const INTERSTITIAL = { everyLevels: 3, minGap: 90, fromLevel: 15 };
 const money = {
   native: !!(window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform()),
@@ -1403,21 +1408,21 @@ const money = {
     if (!window.CdvPurchase) return;
     const { store: st, ProductType, Platform } = CdvPurchase;
     const storePlatform = PLATFORM === 'ios' ? Platform.APPLE_APPSTORE : Platform.GOOGLE_PLAY;
-    st.register(PRODUCTS.map(p => ({ id: p.id, type: p.once ? ProductType.NON_CONSUMABLE : ProductType.CONSUMABLE, platform: storePlatform })));
+    st.register(PRODUCTS.map(p => ({ id: storeId(p.id), type: p.once ? ProductType.NON_CONSUMABLE : ProductType.CONSUMABLE, platform: storePlatform })));
     st.when()
-      .approved(tx => { tx.products.forEach(pr => grant(pr.id, tx.transactionId)); tx.finish(); })
+      .approved(tx => { tx.products.forEach(pr => grant(gameId(pr.id), tx.transactionId)); tx.finish(); })
       .productUpdated(() => { if (!$('#shop').hidden) renderShop(); });
     await st.initialize([storePlatform]);
     this.billing = st;
     // re-grant one-time purchases already owned (new phone, reinstall)
-    for (const p of PRODUCTS) if (p.once && st.owned(p.id)) grant(p.id, 'owned-' + p.id);
+    for (const p of PRODUCTS) if (p.once && st.owned(storeId(p.id))) grant(p.id, 'owned-' + p.id);
   },
-  price(p) { const pr = this.billing && this.billing.get(p.id); return (pr && pr.pricing && pr.pricing.price) || p.price; },
+  price(p) { const pr = this.billing && this.billing.get(storeId(p.id)); return (pr && pr.pricing && pr.pricing.price) || p.price; },
   ownsProduct(p) { return p.once && this.granted.some(t => t.endsWith(':' + p.id)); },
   async buy(p) {
     if (this.native) {
       if (!this.billing) return 'The store is not available right now. Check your connection and try again.';
-      const pr = this.billing.get(p.id), offer = pr && pr.getOffer();
+      const pr = this.billing.get(storeId(p.id)), offer = pr && pr.getOffer();
       if (!offer) return 'That item is not available yet.';
       const err = await offer.order();
       return err && err.code !== CdvPurchase.ErrorCode.PAYMENT_CANCELLED ? 'The purchase did not go through.' : '';
@@ -1425,7 +1430,7 @@ const money = {
     grant(p.id, 'test-' + Date.now());   // web test version: granted straight away, nothing is charged
     return 'Test purchase: nothing was charged. The app store version opens the real store here.';
   },
-  async restore() { if (this.billing) { await this.billing.restorePurchases(); for (const p of PRODUCTS) if (p.once && this.billing.owned(p.id)) grant(p.id, 'owned-' + p.id); } },
+  async restore() { if (this.billing) { await this.billing.restorePurchases(); for (const p of PRODUCTS) if (p.once && this.billing.owned(storeId(p.id))) grant(p.id, 'owned-' + p.id); } },
 };
 function grant(id, txId) {
   const p = findProduct(id); if (!p) return;
