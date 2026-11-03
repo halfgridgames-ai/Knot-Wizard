@@ -14,6 +14,17 @@
       "hidden": true,
       "style": "DARK",
       "initialViewportFitValueHint": "cover"
+    },
+    "LocalNotifications": {
+      "smallIcon": "ic_stat_knot",
+      "iconColor": "#6a4fc4"
     }
+  },
+  "ios": {
+    "includePlugins": [
+      "@capacitor-community/admob",
+      "@capacitor/local-notifications",
+      "cordova-plugin-purchase"
+    ]
   }
 }

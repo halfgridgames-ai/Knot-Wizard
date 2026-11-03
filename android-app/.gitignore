@@ -17,3 +17,10 @@ android/.idea/
 # Signing material - never commit
 *.jks
 *.keystore
+
+# Apple signing material - never commit
+*.p8
+*.p12
+*.mobileprovision
+
+# iOS build outputs / generated files are ignored in ios/.gitignore (ios/ source itself IS committed)

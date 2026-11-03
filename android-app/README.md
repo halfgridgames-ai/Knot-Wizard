@@ -116,6 +116,12 @@ Events the game logs:
 Events show up in Firebase within a day (Analytics -> Events); DebugView shows them live
 for a test phone.
 
+The iPhone app leaves the Firebase plugin out for now (`ios.includePlugins` in
+`capacitor.config.json`), so `track()` does nothing there. To add it later: add an iOS app
+(`com.halfgridgames.knotwizard`) in the same Firebase project, put `GoogleService-Info.plist`
+in `android-app/ios/App/App/` (and in the Xcode project), and add
+`@capacitor-firebase/analytics` to that list.
+
 ## Before launch: swap test ids for real ones
 
 Everything ships with Google's public **test** ids, so you can't accidentally click your
