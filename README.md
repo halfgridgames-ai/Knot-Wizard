@@ -13,4 +13,4 @@ A rope-untangling puzzle game by Halfgrid Games. Drag the wooden pins until no r
 - `tools/make-icon.py`: redraws the icon and feature graphic.
 - `tools/record-clips.js`: records 1080x1920 gameplay clips with music for TikTok, Reels and Shorts (`node tools/record-clips.js clips/`), or the soundtrack as mp3s (`--soundtrack`). Needs Playwright and ffmpeg.
 
-Ads use Google's test ids and purchases are free test purchases until the real ids are swapped in (see `android-app/README.md`, "Before launch").
+Android and iPhone use the real AdMob ad units (publisher pub-4390358547833612). Android analytics goes to the Half Grid Games Firebase project via `android-app/android/app/google-services.json`.

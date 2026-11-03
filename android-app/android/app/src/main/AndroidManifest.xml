@@ -27,17 +27,10 @@
 
         </activity>
 
-        <!--
-            AdMob app id.
-            !!! REPLACE BEFORE LAUNCH !!!
-            ca-app-pub-3940256099942544~3347511713 is Google's public TEST app id.
-            Swap it for your own app id from the AdMob console
-            (Apps -> your app -> App settings -> "App ID", format ca-app-pub-XXXXXXXXXXXXXXXX~NNNNNNNNNN).
-            Note the "~" (app id) - not the "/" used by ad unit ids.
-        -->
+        <!-- Knot Wizard Android AdMob app id (note the "~": an app id, not an ad unit id). -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="ca-app-pub-3940256099942544~3347511713" />
+            android:value="ca-app-pub-4390358547833612~1681036227" />
 
         <provider
             android:name="androidx.core.content.FileProvider"
