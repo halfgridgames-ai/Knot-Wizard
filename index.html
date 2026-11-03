@@ -1339,8 +1339,8 @@ function levelName(g) { return g.kind === 'daily' ? 'daily' : 'level_' + g.idx; 
 const PLATFORM = (window.Capacitor && Capacitor.getPlatform && Capacitor.getPlatform()) || 'web';
 const AD_UNITS = PLATFORM === 'ios'
   ? { rewarded: 'ca-app-pub-4390358547833612/1056024735', interstitial: 'ca-app-pub-4390358547833612/8443560169' }
-  : { rewarded: 'ca-app-pub-3940256099942544/5224354917', interstitial: 'ca-app-pub-3940256099942544/1033173712' };
-const AD_TESTING = PLATFORM !== 'ios';   // iPhone has its real ad units; Android stays on test ids until its real ones are in
+  : { rewarded: 'ca-app-pub-4390358547833612/6658030734', interstitial: 'ca-app-pub-4390358547833612/1405704058' };
+const AD_TESTING = false;   // real ad units on both Android and iPhone
 // Product ids must match the in-app products created in Play Console and App Store Connect. Prices here are
 // fallbacks; the app shows the store's local price once it has loaded.
 const PRODUCTS = [
@@ -1528,7 +1528,7 @@ $('#grid').addEventListener('click', e => { const b = e.target.closest('[data-l]
 $('#mPlay').onclick = () => startPuzzle('level', nextLevel());
 $('#dailyGo').onclick = () => startPuzzle('daily', 0);
 // Settings: sound, rating, ad choices and the legal pages (links open in the phone's browser or Play Store)
-const VERSION = '1.1.1';
+const VERSION = '1.1.2';
 const SITE = 'https://halfgridgames-ai.github.io/Knot-Wizard/';
 // iPhone: rating opens the App Store once APP_STORE_ID is filled in (after Apple approves the app); until then it is hidden there
 const APP_STORE_ID = '';
