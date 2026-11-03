@@ -26,6 +26,7 @@ out = head + src[:body_split] + '\n</head>\n<body>\n' + src[body_split:] + '''
 (root / 'web').mkdir(exist_ok=True)
 (root / 'web' / 'index.html').write_text(out)
 shutil.copy(root / 'privacy.html', root / 'web' / 'privacy.html')   # privacy policy page for the Play listing
+shutil.copy(root / 'terms.html', root / 'web' / 'terms.html')       # terms of service, linked from Settings
 ver = hashlib.sha1((out + (root / 'web' / 'manifest.webmanifest').read_text()).encode()).hexdigest()[:10]
 sw = (root / 'sw-template.js').read_text().replace('__VERSION__', ver)
 (root / 'web' / 'sw.js').write_text(sw)
