@@ -1363,7 +1363,8 @@ const money = {
     if (!this.native) return;
     try {
       this.adMob = Capacitor.Plugins.AdMob;
-      await this.adMob.initialize({ initializeForTesting: AD_TESTING });
+      // Family-friendly ads only: AdMob serves nothing above a G (general audiences) rating.
+      await this.adMob.initialize({ initializeForTesting: AD_TESTING, maxAdContentRating: 'General' });
       // ask for ad consent where the law requires it (UK and EU)
       try { const ci = await this.adMob.requestConsentInfo(); if (ci.isConsentFormAvailable && ci.status === 'REQUIRED') await this.adMob.showConsentForm(); } catch (e) {}
       // iPhone: Apple's "Allow tracking?" prompt, asked once, after the consent form
