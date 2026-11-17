@@ -1379,8 +1379,8 @@ const money = {
     if (!this.native) return;
     try {
       this.adMob = Capacitor.Plugins.AdMob;
-      // Family-friendly ads only: AdMob serves nothing above a G (general audiences) rating.
-      await this.adMob.initialize({ initializeForTesting: AD_TESTING, maxAdContentRating: 'General' });
+      // Family-friendly ads: AdMob serves nothing above a PG (parental guidance) rating.
+      await this.adMob.initialize({ initializeForTesting: AD_TESTING, maxAdContentRating: 'ParentalGuidance' });
       // ask for ad consent where the law requires it (UK and EU)
       try { const ci = await this.adMob.requestConsentInfo(); if (ci.isConsentFormAvailable && ci.status === 'REQUIRED') await this.adMob.showConsentForm(); } catch (e) {}
       // iPhone: Apple's "Allow tracking?" prompt, asked once, after the consent form
