@@ -71,6 +71,9 @@ h1 { font-family: var(--display); font-weight: 800; font-size: clamp(40px, 11vw,
 .lv .st { display: flex; gap: 1px; }
 .lv .st svg { width: 11px; height: 11px; }
 .lv svg.lock { width: 16px; height: 16px; }
+/* tablets and unfolded foldables: the menu grows with the screen instead of staying phone-sized */
+@media (min-width: 700px) and (min-height: 700px) { .menu-in { zoom: 1.25; } }
+@media (min-width: 900px) and (min-height: 1000px) { .menu-in { zoom: 1.45; } }
 .menu-row { display: flex; gap: 8px; flex-wrap: wrap; }
 
 /* ---------- buttons ---------- */
