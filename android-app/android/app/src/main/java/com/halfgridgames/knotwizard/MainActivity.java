@@ -1,5 +1,7 @@
 package com.halfgridgames.knotwizard;
 
+import android.content.pm.ActivityInfo;
+import android.content.res.Configuration;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.Window;
@@ -16,7 +18,9 @@ import com.getcapacitor.BridgeActivity;
  *   from the edge shows them briefly, and they hide again automatically.
  * - Keeps the screen on while the app is in the foreground, so a slow think over a
  *   knot never times the screen out.
- * - Portrait only (android:screenOrientation="portrait" in the manifest).
+ * - Phones stay upright (android:screenOrientation="portrait" in the manifest). Tablets and
+ *   unfolded foldables (smallest width 600dp or more) turn freely, and the game re-lays itself
+ *   out for the new shape; folding back to the cover screen locks it upright again.
  */
 public class MainActivity extends BridgeActivity {
 
@@ -36,7 +40,25 @@ public class MainActivity extends BridgeActivity {
             window.setAttributes(lp);
         }
 
+        applyOrientation(getResources().getConfiguration());
         hideSystemBars();
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        // Folding or unfolding a foldable changes the screen size without restarting the activity
+        // (configChanges in the manifest), so the orientation rule is re-applied here.
+        applyOrientation(newConfig);
+    }
+
+    private void applyOrientation(Configuration config) {
+        int wanted = config.smallestScreenWidthDp >= 600
+            ? ActivityInfo.SCREEN_ORIENTATION_FULL_USER
+            : ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;
+        if (getRequestedOrientation() != wanted) {
+            setRequestedOrientation(wanted);
+        }
     }
 
     @Override
