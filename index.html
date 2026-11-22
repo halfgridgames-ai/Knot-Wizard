@@ -1197,7 +1197,7 @@ async function remindTomorrow() {
     const p = await LN.requestPermissions(); if (p.display !== 'granted') return;
     const at = new Date(); at.setDate(at.getDate() + 1); at.setHours(9, 0, 0, 0);
     await LN.cancel({ notifications: [{ id: 1 }] }).catch(() => {});
-    await LN.schedule({ notifications: [{ id: 1, title: 'Your Daily Knot is ready', body: `A new mystery picture is waiting. Keep your ${save.daily.streak}-day streak going!`, schedule: { at } }] });
+    await LN.schedule({ notifications: [{ id: 1, title: 'Your Daily Knot is ready', body: `A new mystery picture is waiting. Keep your ${save.daily.streak}-day streak going!`, schedule: { at }, isExactNotification: false }] });   // inexact: an exact alarm would open Android's 'Alarms and reminders' screen
   } catch (e) {}
 }
 $('#wMenu').onclick = () => { $('#win').hidden = true; toMenu(); };
