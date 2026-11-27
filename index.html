@@ -384,6 +384,15 @@ HGSplash.show();
   </div>
 </div>
 
+<div class="overlay" id="quit" hidden>
+  <div class="card">
+    <img class="peek" data-pose="peek" alt="">
+    <h2>Leave Knot Wizard?</h2>
+    <p>Your stars and levels are saved.</p>
+    <div class="row"><button class="go" id="quitStay">Keep playing</button><button class="ghost" id="quitGo">Exit</button></div>
+  </div>
+</div>
+
 <div class="overlay" id="ad" hidden>
   <div class="card">
     <div class="label" style="text-align:center">Test ad</div>
@@ -1614,6 +1623,21 @@ $('#mBook').onclick = () => { renderBook(); $('#book').hidden = false; };
 $('#bookClose').onclick = () => { $('#book').hidden = true; };
 $('#mShop').onclick = () => { renderShop(); $('#shop').hidden = false; };
 $('#shopClose').onclick = () => { $('#shop').hidden = true; renderMenu(); };
+
+// Android Back button: closes the open window, leaves a level for the level list, and on the main screen asks
+// before closing the app (without this the app shut straight away, even mid-level)
+const CapApp = PLATFORM === 'android' && window.Capacitor && Capacitor.Plugins && Capacitor.Plugins.App;
+function onBack() {
+  if (!$('#ad').hidden) return;                       // a test ad finishes or is skipped with its own button
+  if (!$('#quit').hidden) { $('#quit').hidden = true; return; }
+  for (const [box, btn] of [['settings', 'setClose'], ['book', 'bookClose'], ['shop', 'shopClose'], ['win', 'wMenu']])
+    if (!$('#' + box).hidden) { $('#' + btn).click(); return; }
+  if (!$('#game').hidden) { toMenu(); return; }
+  $('#quit').hidden = false;
+}
+$('#quitStay').onclick = () => { $('#quit').hidden = true; };
+$('#quitGo').onclick = () => { $('#quit').hidden = true; if (CapApp) CapApp.exitApp(); };
+if (CapApp) CapApp.addListener('backButton', onBack);
 
 /* ---------- misc ---------- */
 let toastT = 0;
