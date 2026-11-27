@@ -1195,7 +1195,13 @@ function shareDaily() {
   if (!G) return;
   const st = G.moves <= G.def.par ? 3 : G.moves <= G.def.par + Math.ceil(G.def.par * 0.6) + 1 ? 2 : 1;
   const text = `Knot Wizard Daily #${dailyNo()} 🧙\n${dailyTwist().name}\n${'⭐'.repeat(st)}${'▫️'.repeat(3 - st)} ${G.moves} moves (par ${G.def.par})\n🔥 ${save.daily.streak}-day streak`;
-  if (navigator.share) navigator.share({ text }).catch(() => {});
+  shareText(text + '\n' + GAME_URL);
+}
+// The phone's share sheet (@capacitor/share in the apps, Web Share in browsers), else copy to the clipboard
+function shareText(text) {
+  const SP = window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform() && Capacitor.Plugins.Share;
+  if (SP) SP.share({ text, dialogTitle: 'Share Knot Wizard' }).catch(() => {});
+  else if (navigator.share) navigator.share({ text }).catch(() => {});
   else if (navigator.clipboard) navigator.clipboard.writeText(text).then(() => toast('Copied. Paste it anywhere!'), () => toast(text));
   else toast(text);
 }
@@ -1558,6 +1564,8 @@ function nativeReview(st) {  // st holds {n, t}; returns false when there is no 
   if ((st.n || 0) < 3 && now - (st.t || 0) > 7 * 864e5) { st.n = (st.n || 0) + 1; st.t = now; setTimeout(() => IAR().requestReview().catch(() => {}), 1200); }
   return true;
 }
+// where a shared link sends friends: the store for the phone they're on, else the web version
+const GAME_URL = PLATFORM === 'ios' ? `https://apps.apple.com/app/id${APP_STORE_ID}` : PLATFORM === 'android' ? 'https://play.google.com/store/apps/details?id=com.halfgridgames.knotwizard' : SITE;
 const LINKS = { rate: RATE_URL, privacy: SITE + 'privacy.html', terms: SITE + 'terms.html', mail: 'mailto:halfgridgames@gmail.com?subject=Knot%20Wizard' };
 function openLink(url) { if (url.startsWith('mailto:')) location.href = url; else window.open(url, '_blank'); }
 function renderSettings() {
@@ -1566,6 +1574,7 @@ function renderSettings() {
     row('sound', 'Sound', 'Clicks, chimes and the spell', save.sound ? 'On' : 'Off', save.sound ? 'eq' : '') +
     row('music', 'Music', 'A tune for every world', save.music ? 'On' : 'Off', save.music ? 'eq' : '') +
     (RATE_URL ? row('rate', 'Rate Knot Wizard', `Tell us how we did on ${PLATFORM === 'ios' ? 'the App Store' : 'Google Play'}`, 'Rate ★') : '') +
+    row('share', 'Share Knot Wizard', 'Send the game to a friend', 'Share') +
     (money.adMob ? row('ads', 'Ad privacy choices', 'Change how ads use your data', 'Open', 'ad') : '') +
     row('privacy', 'Privacy policy', 'What the game stores and why', 'Read', 'ad') +
     row('terms', 'Terms of service', 'The rules for using the game', 'Read', 'ad') +
@@ -1575,6 +1584,7 @@ function renderSettings() {
 $('#setItems').addEventListener('click', e => {
   const b = e.target.closest('[data-set]'); if (!b) return; const id = b.dataset.set;
   if (id === 'sound' || id === 'music') { save[id] = !save[id]; persist(); music.want(menuWorld); renderSettings(); }
+  else if (id === 'share') shareText('Untangle the wizard\'s ropes with me in Knot Wizard, a free rope puzzle game 🧙 ' + GAME_URL);
   else if (id === 'ads') money.adMob.showPrivacyOptionsForm().catch(() => {});
   else openLink(LINKS[id]);
 });
