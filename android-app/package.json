@@ -11,6 +11,7 @@
     "@capacitor-community/in-app-review": "8.0.0",
     "@capacitor-firebase/analytics": "8.5.2",
     "@capacitor/android": "8.5.3",
+    "@capacitor/app": "8.1.2",
     "@capacitor/core": "8.5.3",
     "@capacitor/ios": "8.5.3",
     "@capacitor/local-notifications": "8.3.1",
