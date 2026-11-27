@@ -1000,6 +1000,9 @@ function startPuzzle(kind, idx) {
   updateHud();
   const intro = kind === 'level' ? localOf(idx) <= 2 && WORLDS[w].intro : `${dailyTwist().name}: ${dailyTwist().sub.toLowerCase()}`;
   if (intro) { say(intro, 3200); if (localOf(idx) === 1) toast(intro); } else if (def.pic) say('A picture is hiding in this knot', 3200); else say(`Untie ${G.cross} knot${G.cross === 1 ? '' : 's'}`);
+  // first ever level: a free walkthrough. The glowing pin, its ring and a sliding finger show each move.
+  G.tut = kind === 'level' && idx === 1 && !save.tutDone && !save.stars[1];
+  if (G.tut) { toast('Red dots are knots. Drag the glowing pin into its ring.'); guide(); }
   show('game'); resize();
   track('level_start', { level_name: levelName(G), level: kind === 'daily' ? 0 : idx, world: w });
   if (!running) { running = true; requestAnimationFrame(loop); }
@@ -1069,6 +1072,7 @@ cv.addEventListener('pointerup', endDrag); cv.addEventListener('pointercancel', 
 function afterChange(byPlayer) {
   const before = G.cross; G.cross = crossings(G.P, G.E).length;
   if (G.cross === 0) return win();
+  if (G.tut) { if (byPlayer && G.cross < before) chime(); updateHud(); guide(); return; }
   if (byPlayer && G.cross < before) { chime(); say(['Nice twist!', 'Loosening up', 'Ooh, tidy', 'Knot gone!'][G.moves % 4], true); }
   else say(knotsLeft());
   updateHud();
@@ -1079,6 +1083,11 @@ function undo() {
   tone(330, 0, 0.15, 'sine', 0.1); afterChange(false);
 }
 function restart() { if (!G || G.solved) return; startPuzzle(G.kind, G.idx); }
+function guide() {
+  const m = bestMove(G.def, G.P, G.E, G.inc); if (!m) { G.tut = false; say(knotsLeft()); return; }
+  G.hint = { k: m.k, x: m.x, y: m.y, t: performance.now() };
+  say(G.moves ? `${knotsLeft()}: next glowing pin` : 'Drag the glowing pin');
+}
 function hint() {
   if (!G || G.solved) return;
   const use = () => {
@@ -1096,6 +1105,7 @@ $('#gBack').onclick = () => { toMenu(); };
 /* ---------- win ---------- */
 function win() {
   G.solved = true; G.solvedAt = performance.now(); G.hint = null; updateHud();
+  if (G.tut) { G.tut = false; save.tutDone = true; persist(); }
   say('Spellbound!'); setWizard(true);
   const par = G.def.par, m = G.moves;
   const stars = m <= par ? 3 : m <= par + Math.ceil(par * 0.6) + 1 ? 2 : 1;
@@ -1306,6 +1316,13 @@ function draw(time, dt) {
     c.beginPath(); c.moveTo(from.x, from.y); c.lineTo(tp.x, tp.y); c.stroke();
     c.beginPath(); c.arc(tp.x, tp.y, pinR * (1.5 + pulse * 0.3), 0, 7); c.stroke(); c.setLineDash([]);
     c.fillStyle = 'rgba(106,79,196,0.18)'; c.beginPath(); c.arc(tp.x, tp.y, pinR * 1.4, 0, 7); c.fill();
+    if (G.tut && G.drag < 0) {   // a fingertip pressing the pin and sliding it to the ring, on a loop
+      const k = (time % 1.8) / 1.8, e = k < 0.2 ? 0 : k > 0.8 ? 1 : 0.5 - 0.5 * Math.cos((k - 0.2) / 0.6 * Math.PI);
+      const fx = from.x + (tp.x - from.x) * e, fy = from.y + (tp.y - from.y) * e, a = k > 0.9 ? (1 - k) * 10 : 1;
+      c.globalAlpha = a; c.fillStyle = 'rgba(255,255,255,0.35)'; c.beginPath(); c.arc(fx, fy, pinR * 1.9, 0, 7); c.fill();
+      c.fillStyle = '#fff'; c.strokeStyle = '#6a4fc4'; c.lineWidth = 3; c.beginPath(); c.arc(fx + pinR * 0.5, fy + pinR * 0.7, pinR * 0.85, 0, 7); c.fill(); c.stroke();
+      c.globalAlpha = 1;
+    }
   }
   // pins
   P.forEach((q0, i) => {
